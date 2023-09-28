@@ -96,7 +96,7 @@ Indepedently
 ./orthorefine.exe --input input.txt --OF_file N0.tsv --window_size window_size_number --synteny_ratio synteny_ratio_number 
 `
 
-The support script, [download_for_blast.sh](link), may be run independently to download the fasta and feature tables files. 
+The support script, [download_ft_fafiles.sh](https://github.com/jl02142/OrthoRefine/blob/main/download_ft_fafiles.sh), may be run independently to download the fasta and feature tables files. 
 
 ### Runtime parameters (window size & synteny ratio)
 To determine default parameters, we evaluated different combinations of window size and synteny ratio using average max number of orthologous genes (AMNOG) represented in a single SOG (syntenous ortholog group). We reccomend using a smaller window size (default 8) and higher synteny ratio (default 0.5), espically for closely related genomes; a larger window or lower synteny ratio may be better suited as the evolutionary distance of the genomes increases. Users may view the AMNOG for their dataset on predetermined combinations of window size and synteny ratio by not providing the window size and synteny ratio at runtime. 
