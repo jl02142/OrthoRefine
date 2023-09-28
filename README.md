@@ -1,11 +1,11 @@
 # OrthoRefine: automated enhancement of prior ortholog identification via synteny. 
 
-[Quickstart]()\
-[OrthoRefine method summary]()
+[Quickstart](https://github.com/jl02142/OrthoRefine#quickstart)\
+[OrthoRefine method summary](https://github.com/jl02142/OrthoRefine#orthorefines-method-summary)
 [Install](https://github.com/jl02142/OrthoRefine/tree/main#install)\
-[Input]()\
-[Running]()\
-[Window size & synteny ratio]()
+[Input](https://github.com/jl02142/OrthoRefine#required-input)\
+[Running](https://github.com/jl02142/OrthoRefine#running-orthorefine)\
+[Window size & synteny ratio](https://github.com/jl02142/OrthoRefine#runtime-parameters-window-size--synteny-ratio)
 
 ## Quickstart
 OrthoRefine may be installed on Linux systems with a C++ compiler
