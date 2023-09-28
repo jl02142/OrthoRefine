@@ -82,7 +82,7 @@ Example user created input file, "input.txt". Each line must contain one GCF acc
 
 ## Running OrthoRefine
 
-OrthoRefine may be run indepdently of OrthoFinder or a support script, [master_OrthoRefine.sh](link), may be used to download the data files and run OrthoFinder and OrthoRefine with a single command. 
+OrthoRefine may be run indepdently of OrthoFinder or a support script, [master_OrthoRefine.sh](https://github.com/jl02142/OrthoRefine/blob/main/master_OrthoRefine.sh), may be used to download the data files and run OrthoFinder and OrthoRefine with a single command. 
 
 As single command
 
