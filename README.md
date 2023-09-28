@@ -32,16 +32,24 @@ OrthoRefine automates using synteny (conserved gene order) information to refine
 
 <figure>
     <img src="https://github.com/jl02142/OrthoRefine/assets/23033795/9329a402-7014-4e37-909c-7531b9d45b00" width="1000" height="400">
-    <figcaption>Figure 1. Part of HOG 19 depicting the window around <em>E. fergusonii’s</em> HVX45_RS11505 and its OrthoFinder matches b3271 & b0652 of <em>E. coli</em>, represented by yellow circles with the red box drawn around them. Other orthologous genes (those assigned to matching HOGs by OrthoFinder) within the 10-gene window are designated by the same colored circles. In contrast, white circles indicate that the gene has no ortholog within the same window in the other genomes. The first number below each circle is the HOG assigned by OrthoFinder, while the second entry is the locus tag. As nine out of ten genes surrounding RS11505 had a match in the window centered at b3271, we concluded that there is a syntenic relationship between <em>E. coli</em> b3271 and <em>E. fergusonii</em> RS11505, and they are orthologs while b0652 is presumed to be a paralog of RS11505; none of the genes surrounding b0562 had a match within the window around RS11505 </figcaption>
+    <figcaption>Figure 1. HOG 19 depicting the window around <em>E. fergusonii’s</em> HVX45_RS11505 and its OrthoFinder matches b3271 & b0652 of <em>E. coli</em>, represented by yellow circles with the red box drawn around them. Other orthologous genes (those assigned to matching HOGs by OrthoFinder) within the 10-gene window are designated by the same colored circles. In contrast, white circles indicate that the gene has no ortholog within the same window in the other genomes. The first number below each circle is the HOG assigned by OrthoFinder, while the second entry is the locus tag. As nine out of ten genes surrounding RS11505 had a match in the window centered at b3271, we concluded that there is a syntenic relationship between <em>E. coli</em> b3271 and <em>E. fergusonii</em> RS11505, and they are orthologs while b0652 is presumed to be a paralog of RS11505; none of the genes surrounding b0562 had a match within the window around RS11505 </figcaption>
 </figure>
 
+\
+For additional information and examples, see OrthoRefine's paper. 
 
-
+[Ludwig, J and Mrázek, J. OrthoRefine: automated enhancement of prior ortholog identification via synteny. 2023]()
 
 
 ## Install
 ### OrthoFinder
 OrthoFinder may be found at its [Github page](https://github.com/davidemms/OrthoFinder)
+
+If you use OrthoFinder, please cite their paper(s).
+
+[Emms, D.M. and Kelly, S. (2019) OrthoFinder: phylogenetic orthology inference for comparative genomics. Genome Biology 20:238](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1832-y)
+
+[Emms, D.M. and Kelly, S. (2015) OrthoFinder: solving fundamental biases in whole genome comparisons dramatically improves orthogroup inference accuracy. Genome Biology 16:157](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-015-0721-2)
 
 ### OrthoRefine
 OrthoRefine's install files may be found at its [Github release page](https://github.com/jl02142/OrthoRefine/releases)
