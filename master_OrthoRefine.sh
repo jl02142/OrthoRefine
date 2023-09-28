@@ -186,10 +186,10 @@ while true; do
     fi
 done
 
-./download_for_blast.sh $input
+./download_ft_fafiles.sh $input
 
 $finder_cmd
-echo $finder_cmd
+#echo $finder_cmd
 
 if [ ! -z "$res_dir" ];then # if res_dir was set by user
     cp "$(\ls -1dt $res_dir/OrthoFinder/*/Phylogenetic_Hierarchical_Orthogroups/$OF_file | head -n 1)" ./
