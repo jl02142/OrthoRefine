@@ -2119,7 +2119,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                                             for(int bbb = 0; bbb < locus_tag_apart[a][bb].size(); ++bbb){
                                                 if(locus_tag_apart[a][aa][aaa] == locus_tag_apart[a][bb][bbb] && prod_acc_flag == 0){ // only prod_acc can be duplicated within and between genomes, locus tag is unique across genomes
                                                     if(aa!=bb){
-                                                        if(diag > 1)std::cout << "INSERTING" << '\t' << locus_tag_apart[a][bb][bbb] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
+                                                        if(diag > 1)std::cout << "INSERTING FIRST TOP LOOP" << '\t' << locus_tag_apart[a][bb][bbb] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
                                                         final_answer[x][pos].push_back(locus_tag_apart[a][bb][bbb]);
                                                         do_assign = 0;
                                                         goto try_assign;
@@ -2136,7 +2136,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                                                     }
                                                 }
                                                 // do insert
-                                                if(diag > 1)std::cout << "INSERTING" << '\t' << locus_tag_apart[a][bb][bbb] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
+                                                if(diag > 1)std::cout << "INSERTING FIRST BOT LOOP" << '\t' << locus_tag_apart[a][bb][bbb] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
                                                 final_answer[x][pos].push_back(locus_tag_apart[a][bb][bbb]);
                                                 do_assign = 0;
                                                 next_bbb:;
@@ -2160,7 +2160,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                                 for(int bb = 0; bb < locus_tag_apart[b].size();++bb){
                                     for(int bbb = 0; bbb < locus_tag_apart[b][bb].size(); ++bbb){
                                         if(locus_tag_apart[a][aa][aaa] == locus_tag_apart[b][bb][bbb]){
-                                            if(diag>1)std::cout << "MATCH BETWEEN LOCUS TAG APART AND LOCUS TAG APART" << '\t' << locus_tag_apart[a][aa][aaa] << '\n';
+                                            if(diag>1)std::cout << "MATCH BETWEEN LOCUS TAG APART AND LOCUS TAG APART TOP" << '\t' << locus_tag_apart[a][aa][aaa] << '\n';
                                             int cc{0};
                                             if(bb == 0)cc = 1;
                                             for(int ccc = 0; ccc < locus_tag_apart[b][cc].size(); ++ccc){
@@ -2169,8 +2169,15 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                                                         for(int xxx = 0; xxx < final_answer[x][xx].size(); ++xxx){
                                                             if(locus_tag_apart[b][cc][ccc] == final_answer[x][xx][xxx]){
                                                                 if(diag>1)std::cout<< "MATCH BETWEEN LOCUS TAG APART AND FINAL ANSWER" << '\t' << locus_tag_apart[b][cc][ccc] << '\n';
-                                                                if(diag>1)std::cout << "INSERTING" << '\t' << locus_tag_apart[a][aa][aaa] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
+                                                                if(diag>1)std::cout << "INSERTING DO_ASSIGN TOP LOOP" << '\t' << locus_tag_apart[a][aa][aaa] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
                                                                 final_answer[x][pos].push_back(locus_tag_apart[a][aa][aaa]);
+                                                                if(aa == 1){ // load other part of answer, will be skipped over if index 1 could match but index 0 could not match until index 1 did but the the loop is already over then
+                                                                    pos = locus_ft[a][0];
+                                                                    for(int aaaa = 0; aaaa < locus_tag_apart[a][0].size(); ++aaaa){ // incase any ties or subsequent ordered genes
+                                                                        if(diag>1)std::cout << "INSERTING DO_ASSIGN BOT Loop" << '\t' << locus_tag_apart[a][0][aaaa] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
+                                                                        final_answer[x][pos].push_back(locus_tag_apart[a][0][aaaa]);
+                                                                    }
+                                                                }
                                                                 do_assign = 0;
                                                                 goto try_assign;
                                                             }else{
@@ -2184,8 +2191,8 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                                                                                 if(d == 0)ee = 1;
                                                                                 for(int eee = 0; eee < locus_tag_apart[d][ee].size(); ++eee){
                                                                                     if(locus_tag_apart[d][ee][eee] == final_answer[x][xx][xxx]){
-                                                                                        if(diag>1)std::cout<< "MATCH BETWEEN LOCUS TAG APART AND LOCUS TAG APART" << '\t' << locus_tag_apart[b][cc][ccc] << '\t' << "AND MATCH BETWEEN LOCUS TAG APART AND FINAL ANSWER" << '\t' << locus_tag_apart[d][ee][eee] << '\n';
-                                                                                        if(diag>1)std::cout << "INSERTING" << '\t' << locus_tag_apart[a][aa][aaa] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
+                                                                                        if(diag>1)std::cout<< "MATCH BETWEEN LOCUS TAG APART AND LOCUS TAG APART BOT" << '\t' << locus_tag_apart[b][cc][ccc] << '\t' << "AND MATCH BETWEEN LOCUS TAG APART AND FINAL ANSWER" << '\t' << locus_tag_apart[d][ee][eee] << final_answer[x][xx][xxx] << '\t' << '\n';
+                                                                                        if(diag>1)std::cout << "INSERTING DO_ASSIGN BOT Loop" << '\t' << locus_tag_apart[a][aa][aaa] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
                                                                                         final_answer[x][pos].push_back(locus_tag_apart[a][aa][aaa]);
                                                                                         do_assign = 0;
                                                                                         goto try_assign;
