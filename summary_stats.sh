@@ -1,4 +1,6 @@
 # from https://www.codebyamir.com/blog/parse-command-line-arguments-using-getopt
+window_size=8
+synteny_ratio=0.5
 SHORT=:
 LONG=input:,OF_file:,window_size:,synteny_ratio:,exe:,sankey_out:,core:,complex:,
 OPTS=$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")
@@ -61,6 +63,18 @@ if [ -z "$exe" ]; then
     { exit 1; }
 fi
 
+if [ -z "$OF_file" ];then
+    echo "Error: OF_file (N0.tsv) not provided"
+    return 1 2>/dev/null
+    { exit 1; }
+fi
+
+if [ -z "$input" ];then
+    echo "Error: input not provided"
+    return 1 2>/dev/null
+    { exit 1; }
+fi
+
 # set number of cores if user didn't provide
 if [ -z "$core"]; then
     core=$(grep -c ^processor /proc/cpuinfo)
@@ -82,7 +96,7 @@ if test -f "$sankey_out"; then
     return 1 2>/dev/null
     { exit 1; }
 fi
-
+echo $OF_File
 # create array containing the commands to be run
 cluster_submit=( "${cluster_submit[@]}" "./$exe --input $input --OF_file $OF_file --window_size $window_size --synteny_ratio $synteny_ratio --print_all 0 --run_all_orthofinder 0 " )
 cluster_submit=( "${cluster_submit[@]}" "./$exe --input $input --OF_file $OF_file --window_size $window_size --synteny_ratio $synteny_ratio --print_all 1 --run_all_orthofinder 0 " )
@@ -123,9 +137,9 @@ number_hogs_could_be_refined=$(cat $outfile\_1\_1 | tail -n -1 | cut -f2)
 #cat $outfile\_0\_0 | head -n -1 | cut -f2 | sort | uniq > zero_zero_uniq 
 
 # run OrthoRefine printing all paralogous HOGs that can be refined
-cat $outfile\_1\_0 | head -n -1 | cut -f2 | sort | uniq > one_zero_uniq 
+cat $outfile\_1\_0 | head -n -1 | tail +2 | cut -f1 | cut -c 7- | sed 's/0\{1,6\}//' | sort | uniq > one_zero_uniq
 # run OrthoRefine printing all paralogous HOGs that were confirmed with synteny
-cat $outfile\_2\_0 | head -n -1 | cut -f2 | sort | uniq > two_zero_uniq
+cat $outfile\_2\_0 | head -n -1 | tail +2 | cut -f1 | cut -c 7- | sed 's/0\{1,6\}//' | sort | uniq > two_zero_uniq
 # print to file_2934 those HOGs (their numbers) that are uniq of the paralogs that could be refined (not found in paralog confirmed with synteny) and those HOGs of paralogs that were also found in paralogs confirmed with synteny
 # we supressed those HOGs only found in the second file
 comm -2 one_zero_uniq two_zero_uniq > file_2934
@@ -160,7 +174,7 @@ cat $OF_file| awk -F '\t' '{for(i=3; i<=NF; ++i){if(i == 3){count=0}{if($i ~ /^[
 # get HOG number and strip leading 0's
 cat for_grep_for_figure_1_to_1 | cut -f1 | sed 's/N0.HOG//'  | sed 's/0\{1,6\}//' | sort > to_compare_1
 # run OrthoRefine printing those refined by synteny and on all HOGs
-cat $outfile\_0\_1 | head -n -1 | cut -f2 | sort | uniq > to_compare_2
+cat $outfile\_0\_1 | head -n -1 | tail +2 | cut -f1 | cut -c 7- | sed 's/0\{1,6\}//' | sort | uniq > to_compare_2
 # number of HOGs that were 1-1 that could be refined by OrthoRefine. Print those HOGs present in both files
 number_hogs_one_to_one_refined=$(comm -12 to_compare_1 to_compare_2 | wc -l)
 #echo $number_hogs_one_to_one_refined
@@ -186,7 +200,7 @@ number_of_hogs_zero_or_one_unrefined=$(($zero_or_one_hogs-$number_hogs_zero_or_o
 #echo $number_of_hogs_zero_or_one_unrefined
 
 # outfile_2_1 is from OrthRefine run on all HOGs and printing those HOGs that were changed with synteny
-cat $outfile\_2\_1 | head -n -1 | cut -f2 | sort | uniq > to_compare_3
+cat $outfile\_2\_1 | head -n -1 | tail +2 | cut -f1 | cut -c 7- | sed 's/0\{1,6\}//' | sort | uniq > to_compare_3
 #number of HOGs that were 1-to-1 that were confirmed by synteny (Unchanged Synteny confirmed and changed with synteny)
 number_of_hogs_one_to_one_orthologs_USC_and_CWS=$(comm -12 to_compare_1 to_compare_3 | wc -l)
 #echo $number_of_hogs_one_to_one_orthologs_USC_and_CWS
