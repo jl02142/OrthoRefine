@@ -8,7 +8,7 @@
 [Window size & synteny ratio](https://github.com/jl02142/OrthoRefine#runtime-parameters-window-size--synteny-ratio)
 
 ## Quickstart
-OrthoRefine may be installed on Linux systems with a C++ compiler
+OrthoRefine may be installed with a C++ compiler
 
 `
 g++ -O3 orthorefine.cpp -o orthorefine.exe
@@ -28,7 +28,7 @@ Single command run
 `
 
 ## OrthoRefine's method summary
-OrthoRefine automates using synteny (conserved gene order) information to refine prior ortholog identification. The analysis begins by constructing a window of user specified size centered at each gene of the HOG. Excluding this gene from the HOG (located at the center of the window), OrthoRefine evaluates the synteny by counting matching pairs of genes inside the window; matching pairs consist of genes assigned to the same HOG in the initial OrthoFinder output (Figure 1). We note that genes only need to be within the window and are not required to be in the same order, and genes that do not have a homolog in the other genome are not included in the window. The synteny ratio is calculated by taking the number of matching pairs and dividing it by the window size. If the ratio is greater than a cutoff (default 0.5), the genes at the center of the window are considered syntenic. 
+OrthoRefine automates using synteny (conserved gene order) information to refine prior homolog (orthologous group) identification. The analysis begins by constructing a window of user specified size centered at each gene of the HOG. Excluding this gene from the HOG (located at the center of the window), OrthoRefine evaluates the synteny by counting matching pairs of genes inside the window; matching pairs consist of genes assigned to the same group by a prior program (e.g. HOG group in the OrthoFinder output) (Figure 1). We note that genes only need to be within the window and are not required to be in the same order, and genes that do not have a homolog in the other genome are not included in the window. The synteny ratio is calculated by taking the number of matching pairs and dividing it by the window size. If the ratio is greater than a cutoff (default 0.5), the genes at the center of the window are considered syntenic. 
 
 <figure>
     <img src="https://github.com/jl02142/OrthoRefine/assets/23033795/9329a402-7014-4e37-909c-7531b9d45b00" width="1000" height="400">
@@ -43,13 +43,7 @@ For additional information and examples, see OrthoRefine's paper.
 
 ## Install
 ### OrthoFinder
-OrthoFinder may be found at its [Github page](https://github.com/davidemms/OrthoFinder)
-
-If you use OrthoFinder, please cite their paper(s).
-
-[Emms, D.M. and Kelly, S. (2019) OrthoFinder: phylogenetic orthology inference for comparative genomics. Genome Biology 20:238](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1832-y)
-
-[Emms, D.M. and Kelly, S. (2015) OrthoFinder: solving fundamental biases in whole genome comparisons dramatically improves orthogroup inference accuracy. Genome Biology 16:157](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-015-0721-2)
+OrthoRefine requires, as input, a file of prior homolog identification; OrthoRefine currently supports OrthoFinder's default output. OrthoFinder may be found at its [Github page](https://github.com/davidemms/OrthoFinder)
 
 ### OrthoRefine
 OrthoRefine's install files may be found at its [Github release page](https://github.com/jl02142/OrthoRefine/releases)
