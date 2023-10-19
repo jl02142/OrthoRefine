@@ -5,8 +5,8 @@
 [Install](https://github.com/jl02142/OrthoRefine/tree/main#install)\
 [Input](https://github.com/jl02142/OrthoRefine#required-input)\
 [Running](https://github.com/jl02142/OrthoRefine#running-orthorefine)\
-[Window size & synteny ratio](https://github.com/jl02142/OrthoRefine#runtime-parameters-window-size--synteny-ratio)
-[Runtime options]
+[Window size & synteny ratio](https://github.com/jl02142/OrthoRefine#runtime-parameters-window-size--synteny-ratio)\
+[Runtime options](https://github.com/jl02142/OrthoRefine/tree/main#runtime-options)
 
 ## Quickstart
 OrthoRefine may be installed with a C++ compiler
