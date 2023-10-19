@@ -7,7 +7,7 @@
 [Running](https://github.com/jl02142/OrthoRefine#running-orthorefine)\
 [Window size & synteny ratio](https://github.com/jl02142/OrthoRefine#runtime-parameters-window-size--synteny-ratio)\
 [Runtime options](https://github.com/jl02142/OrthoRefine/tree/main#runtime-options)\
-[Interpreting the ouput]()
+[Interpreting the ouput](https://github.com/jl02142/OrthoRefine/tree/main#interpreting-the-ouput)
 
 ## Quickstart
 OrthoRefine may be installed with a C++ compiler
