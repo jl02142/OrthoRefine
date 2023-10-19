@@ -2527,7 +2527,7 @@ void while_loop(std::vector<int>*** HOG_master, int j, int p, int **zstore, int 
         end = m + samp_forw + ((window_size / 2) - adjust_post) + 1;                        
     }
 
-    if(diag > 0){
+    if(diag > 1){
         std::cout << "END" << '\t' << end << '\t' << "n" << '\t' << n << '\t' << samp_forw << '\t' << samp_back << '\t' << (*feature_tables_info)[ftk].chromosome << '\n';
     }
 
