@@ -6,7 +6,8 @@
 [Input](https://github.com/jl02142/OrthoRefine#required-input)\
 [Running](https://github.com/jl02142/OrthoRefine#running-orthorefine)\
 [Window size & synteny ratio](https://github.com/jl02142/OrthoRefine#runtime-parameters-window-size--synteny-ratio)\
-[Runtime options](https://github.com/jl02142/OrthoRefine/tree/main#runtime-options)
+[Runtime options](https://github.com/jl02142/OrthoRefine/tree/main#runtime-options)\
+[Interpreting the ouput]()
 
 ## Quickstart
 OrthoRefine may be installed with a C++ compiler
@@ -112,4 +113,20 @@ OrthoRefine has several runtime options, some which standard end-users may find 
 --path File path to location if the input files are located in a different location than the executable.
 
 #### Advanced options
+
 --diag will print extra information to diagnosis potential problems. Accepted values are 0 (none, default), 1 (short), or 2 (long) or 3 (long long) or 4 (everything). Not intended for everyday use. 
+
+### Interpreting the ouput
+
+OrthoRefine's output has been formatted to closely match OrthoFidner's. A change has been made to the second collumn where the orthogroup has been replaced with the SOG, and to the third collumn where the node has been replaced with the gene name from the feature table file of the first genome listed in the input file. (If the first genome does not contribute to a HOG, no gene name will be printed. If the first genome is present in the HOG with at least one gene, that gene's gene name will be listed for all SOGs. This will be fixed and updated in a future version.) The final line of the output contains the number of HOGs refined and the total number of refinements, which can be larger as a single HOG can be refined into mulitple SOGs. 
+
+An example output is below. HOG 5 is split into two SOGs, 5.0 which contains b1552 and HVX45_RS19450 and 5.1 which contains b0990, JRC41_RS13205, and GV529_RS02480. b0990 is annotated as "cold shock protein CspG" and currently this is printed for all 5.x SOGs (will be fixed in future version). 
+```
+HOG     SOG     Gene_name       GCF_000005845.2_ASM584v2_feature_table.txt      GCF_013892435.1_ASM1389243v1_feature_table.txt  GCF_016904755.1_ASM1690475v2_feature_table.txt  GCF_902709585.1_H1-003-0086-C-F.v2_feature_table.txt
+N0.HOG0000005   5.0     cold shock protein CspG b1552   HVX45_RS19450
+N0.HOG0000005   5.1     cold shock protein CspG b0990           JRC41_RS13205   GV529_RS02480
+N0.HOG0000019   19.0    glutamate/aspartate ABC transporter ATP binding subunit b0652   HVX45_RS07420   JRC41_RS15115   GV529_RS05870
+N0.HOG0000019   19.1    glutamate/aspartate ABC transporter ATP binding subunit b3271   HVX45_RS11505           GV529_RS14465
+...
+Number of HOGs refined: 408     for a total refinement of       468
+```
