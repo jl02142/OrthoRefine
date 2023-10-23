@@ -2344,7 +2344,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                     for(int yy = 0; yy < final_answer[xx].capacity(); ++yy){
                         if(final_answer[xx][yy].size() == 0)temp_hog_match += '\t'; // insert tabs for genomes not contributing a gene to a SOG
                         for(int zz = 0; zz < final_answer[xx][yy].size(); ++zz){
-                            if(diag > 1){ 
+                            if(diag > 2){ 
                                 std::cout << "Final answer before inserting to final print array" << '\t' << j << '\t' << xx << '\t' << yy << '\t' << zz << '\t' << final_answer[xx][yy][zz] << '\n';
                             }
                             temp_hog_match += final_answer[xx][yy][zz];
@@ -2366,7 +2366,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                     }else if(temp_hog_match != ""){
                         hog_match[j].push_back(temp_hog_match);
                     }
-                    if(diag > 0){
+                    if(diag > 2){
                         std::cout << "FINAL SIZE" << '\t' << final_answer.size() << '\n';
                     }
                 }   
