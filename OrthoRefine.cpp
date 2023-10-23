@@ -1657,8 +1657,10 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                                             continue;
                                         }
                                         if(zstore[z][z2D] == ustore[u][u2D] && ucheck[u] != 1 && zcheck[z] != 1 && ustore[u][u2D] != -999 && zstore[z][z2D] != -999){ 
-                                            if(diag > 0){
-                                                std::cout << "Match" << '\t' << zstore[z][z2D] << '\t' << ustore[u][u2D] << '\t' << zcheck[z] << '\t' << ucheck[u] << '\t' << z << '\t' << u << std::endl;
+                                            if(diag <= 2){
+                                                std::cout << "Match" << '\t' << zstore[z][z2D] << '\n';
+                                            }else if(diag > 2){
+                                                std::cout << "Match" << '\t' << zstore[z][z2D] << '\t' << ustore[u][u2D] << '\t' << zcheck[z] << '\t' << ucheck[u] << '\t' << z << '\t' << u << '\n';
                                             }
                                             zcount[p] += 1;
                                             ucheck[u] = 1;
@@ -1741,7 +1743,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                         }
                         if(z_ratio < z_max && diag > 0 && HOG_master[i][j][hmnk][p] != -9999){
                             int temp = HOG_master[i][j][hmnk][p];
-                            std::cout << "SOG NOT BETTER" << '\t' << "HOG" << '\t' << j << '\t' << (*feature_tables_info)[ftk].locus_tag[m] << '\t' << (*feature_tables_info)[ftnk].locus_tag[temp]<<  '\t' << "ratio" << '\t' << z_ratio << '\t' << "max" << '\t' << z_max << '\t' << "adjust window" << '\t' <<   adjst_window <<  '\t' << "reduce ratio" << '\t'<<    reduce_ratio << '\t' << "FTK" << '\t' << ftk << '\t' << "FTNK" << '\t' << ftnk << '\n';
+                            std::cout << "SOG NOT BETTER" << '\t' << "HOG" << '\t' << j << '\t' << (*feature_tables_info)[ftk].locus_tag[m] << '\t' << (*feature_tables_info)[ftnk].locus_tag[temp]<<  '\t' << "ratio" << '\t' << z_ratio << '\t' << "max" << '\t' << z_max << '\t' << "adjust window" << '\t' <<   adjst_window <<  '\t' << "reduce ratio" << '\t'<<    reduce_ratio << '\t' << '\n';
                         }
                     }
 
@@ -1775,7 +1777,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                             ft1_name_prod_acc += (*feature_tables_info)[ftk].prod_acc[mtemp];
                         }
                     }
-                    if(diag > 1){
+                    if(diag > 2){
                         std::cout << "ft1 name locus tag" << '\t' << ft1_name_locus_tag << '\n';
                     }
                     int larger_zind_or_together2{0};
@@ -1788,7 +1790,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                     for(int q = 0; q < larger_zind_or_together2; ++q){
                         verify_below[q] = "";
                     }
-                    if(diag > 1){
+                    if(diag > 2){
                         std::cout << "value stored at z_ind[0]" << '\t' << z_ind[0] << '\t' << "size of z_ind" << '\t' << z_ind.size() << '\n';
                         std::cout << "values stored in z_ind are" << '\n';
                         for(int hgh = 0; hgh < z_ind.size(); ++hgh){
@@ -1801,7 +1803,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                     std::string ft2_name_locus_tag = (*feature_tables_info)[ftnk].locus_tag[temp];
                     std::string ft2_name_prod_acc = (*feature_tables_info)[ftnk].prod_acc[temp];
                     verify_below[0] = (*feature_tables_info)[ftnk].locus_tag[temp];
-                    if(diag > 1){
+                    if(diag > 2){
                         std::cout << "ft2 name locus tag" << '\t' << ft2_name_locus_tag << '\n'; // ft_name_locus_tag
                     }
                     int qtemp_store{-1}; 
@@ -1869,7 +1871,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                             ft2_name_prod_acc += ft_2_temp_prod[q];
                         }
                     }
-                    if(diag > 1){
+                    if(diag > 2){
                         std::cout << "FT2 name locus tag post together" << '\t' << ft2_name_locus_tag << '\n';
                     }
                     if(z_ind.size() > 1){  // if best match in hog had same synteny_ratio as other possible matches within HOG, write all best possible
@@ -2014,7 +2016,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
 
             }
 
-            if(diag > 1){
+            if(diag > 2){
                 std::cout << "locus_tag.size() pre lt_size count and adjustment" << '\t' << locus_tag.size() << '\n';
             }
             int lt_size{0};
@@ -2037,7 +2039,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
             prod_acc.resize(pa_size);
 
             //DO NOT DELETE CODE COMMENTED OUT BELOW
-            if(diag > 0){
+            if(diag > 2){
                 std::cout << "j" << '\t' << j << '\t' << "prod_acc_size" << '\t' << prod_acc.size() << '\t' << prod_acc[0].size() << '\t' << "lt_size" << '\t' <<  lt_size << '\n'; 
                 std::cout << "PRINT OLD" << '\n';
                 for(int xx = 0; xx < locus_tag.size(); ++xx){
@@ -2055,7 +2057,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                 //}
             }
 
-            if(diag > 1){
+            if(diag > 2){
                 std::cout << "starting match" << std::endl;
                 for(int xx = 0; xx < locus_tag.size(); ++xx){
                     for(int yy = 0; yy < locus_tag[xx].size(); ++yy){
@@ -2096,7 +2098,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                 }
             }
 
-            if(diag > 1){
+            if(diag > 2){
                 std::cout << "LOCUS TAG APART" << '\n';
                 for(int z = 0; z < locus_tag.size(); ++z){
                     for(int zz = 0; zz < 2; ++zz){
@@ -2111,29 +2113,29 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
 
             // this nested for loop combines ortholog pairs. If A matches B and A matches C, create single entry of A-B-C instead of 3 entries of A-B, B-C, A-C
             for(int a = 0; a < locus_tag_apart.size(); ++a){
-                if(diag > 1)std::cout << "starting a" << '\t' << a << '\n';
+                if(diag > 2)std::cout << "starting a" << '\t' << a << '\n';
                 bool do_assign{1};
                 for(int aa = 0; aa < locus_tag_apart[a].size(); ++aa){ // If A-B is already in final answer and A-C exist, insert C onto A-B
-                    if(diag > 1)std::cout << "starting aa" << '\t' << aa << '\t' << locus_tag_apart[a][aa][0] << '\n';
+                    if(diag > 2)std::cout << "starting aa" << '\t' << aa << '\t' << locus_tag_apart[a][aa][0] << '\n';
                     for(int aaa = 0; aaa < locus_tag_apart[a][aa].size(); ++aaa){
                         if(locus_tag_apart[a][aa][aaa] == ""){
                             std::cout << "BLANK A AA AAA" << '\n'; // safety check, should never trigger
                         }
-                        if(diag > 1)std::cout << "starting aaa" << '\t' << aaa << '\t' << locus_tag_apart[a][aa][aaa] <<'\n';
+                        if(diag > 2)std::cout << "starting aaa" << '\t' << aaa << '\t' << locus_tag_apart[a][aa][aaa] <<'\n';
                         for(int x = 0; x < final_answer.size(); ++x){
                             for(int xx = 0; xx < final_answer[x].size(); ++xx){
                                 for(int xxx = 0; xxx < final_answer[x][xx].size(); ++xxx){
                                     if(final_answer[x][xx][xxx] == ""){
-                                        std::cout << "BLANK X XX XXX" << '\n';
+                                        std::cout << "BLANK X XX XXX" << '\n'; // safety check, should never trigger
                                     }
                                     if(locus_tag_apart[a][aa][aaa] == final_answer[x][xx][xxx]){
-                                        if(diag > 1)std::cout << "FIRST MATCH" << '\t' << locus_tag_apart[a][aa][aaa] << '\n';
+                                        if(diag > 2)std::cout << "FIRST MATCH" << '\t' << locus_tag_apart[a][aa][aaa] << '\n';
                                         for(int bb = 0; bb < locus_tag_apart[a].size(); ++bb){
                                             int pos = locus_ft[a][bb];
                                             for(int bbb = 0; bbb < locus_tag_apart[a][bb].size(); ++bbb){
                                                 if(locus_tag_apart[a][aa][aaa] == locus_tag_apart[a][bb][bbb] && prod_acc_flag == 0){ // only prod_acc can be duplicated within and between genomes, locus tag is unique across genomes
                                                     if(aa!=bb){
-                                                        if(diag > 1)std::cout << "INSERTING FIRST TOP LOOP" << '\t' << locus_tag_apart[a][bb][bbb] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
+                                                        if(diag > 2)std::cout << "INSERTING FIRST TOP LOOP" << '\t' << locus_tag_apart[a][bb][bbb] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
                                                         final_answer[x][pos].push_back(locus_tag_apart[a][bb][bbb]);
                                                         do_assign = 0;
                                                         goto try_assign;
@@ -2144,19 +2146,19 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                                                         if(locus_tag_apart[a][bb][bbb] == final_answer[x][yy][yyy]){ // ortholog pair is already contained in final answer, do not duplicate
                                                             do_assign = 0;
                                                             goto next_bbb;
-                                                        }else if(diag > 1){
+                                                        }else if(diag > 2){
                                                             std::cout << "NO MATCH INNER" << '\t' << locus_tag_apart[a][bb][bbb] << '\t' << final_answer[x][yy][yyy] << '\n';
                                                         }
                                                     }
                                                 }
                                                 // do insert
-                                                if(diag > 1)std::cout << "INSERTING FIRST BOT LOOP" << '\t' << locus_tag_apart[a][bb][bbb] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
+                                                if(diag > 2)std::cout << "INSERTING FIRST BOT LOOP" << '\t' << locus_tag_apart[a][bb][bbb] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
                                                 final_answer[x][pos].push_back(locus_tag_apart[a][bb][bbb]);
                                                 do_assign = 0;
                                                 next_bbb:;
                                             }
                                         }
-                                    }else if(diag > 1){
+                                    }else if(diag > 2){
                                         std::cout << "NO MATCH" << '\t' << locus_tag_apart[a][aa][aaa] << '\t' << final_answer[x][xx][xxx] << '\n';
                                     }
                                 }
@@ -2165,7 +2167,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                     }
                 }
                 if(do_assign == 1){ // If A-B is already in final answer but A-C does not exist, check if B-C exists and if so, insert C onto A-B
-                    if(diag>1)std::cout<< "STARTING LOCUS TAG AND FINAL ANSWER COMPARE" << '\n';
+                    if(diag > 2)std::cout<< "STARTING LOCUS TAG AND FINAL ANSWER COMPARE" << '\n';
                     for(int aa = 0; aa < locus_tag_apart[a].size(); ++aa){
                         int pos = locus_ft[a][aa];
                         for(int aaa = 0; aaa < locus_tag_apart[a][aa].size(); ++aaa){
@@ -2174,7 +2176,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                                 for(int bb = 0; bb < locus_tag_apart[b].size();++bb){
                                     for(int bbb = 0; bbb < locus_tag_apart[b][bb].size(); ++bbb){
                                         if(locus_tag_apart[a][aa][aaa] == locus_tag_apart[b][bb][bbb]){
-                                            if(diag>1)std::cout << "MATCH BETWEEN LOCUS TAG APART AND LOCUS TAG APART TOP" << '\t' << locus_tag_apart[a][aa][aaa] << '\n';
+                                            if(diag > 2)std::cout << "MATCH BETWEEN LOCUS TAG APART AND LOCUS TAG APART TOP" << '\t' << locus_tag_apart[a][aa][aaa] << '\n';
                                             int cc{0};
                                             if(bb == 0)cc = 1;
                                             for(int ccc = 0; ccc < locus_tag_apart[b][cc].size(); ++ccc){
@@ -2182,20 +2184,20 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                                                     for(int xx = 0; xx < final_answer[x].size(); ++xx){
                                                         for(int xxx = 0; xxx < final_answer[x][xx].size(); ++xxx){
                                                             if(locus_tag_apart[b][cc][ccc] == final_answer[x][xx][xxx]){
-                                                                if(diag>1)std::cout<< "MATCH BETWEEN LOCUS TAG APART AND FINAL ANSWER" << '\t' << locus_tag_apart[b][cc][ccc] << '\n';
-                                                                if(diag>1)std::cout << "INSERTING DO_ASSIGN TOP LOOP" << '\t' << locus_tag_apart[a][aa][aaa] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
+                                                                if(diag > 2)std::cout<< "MATCH BETWEEN LOCUS TAG APART AND FINAL ANSWER" << '\t' << locus_tag_apart[b][cc][ccc] << '\n';
+                                                                if(diag > 2)std::cout << "INSERTING DO_ASSIGN TOP LOOP" << '\t' << locus_tag_apart[a][aa][aaa] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
                                                                 final_answer[x][pos].push_back(locus_tag_apart[a][aa][aaa]);
                                                                 if(aa == 1){ // load other part of answer, will be skipped over if index 1 could match but index 0 could not match until index 1 did but the the loop is already over then
                                                                     pos = locus_ft[a][0];
                                                                     for(int aaaa = 0; aaaa < locus_tag_apart[a][0].size(); ++aaaa){ // incase any ties or subsequent ordered genes
-                                                                        if(diag>1)std::cout << "INSERTING DO_ASSIGN BOT Loop" << '\t' << locus_tag_apart[a][0][aaaa] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
+                                                                        if(diag > 2)std::cout << "INSERTING DO_ASSIGN BOT Loop" << '\t' << locus_tag_apart[a][0][aaaa] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
                                                                         final_answer[x][pos].push_back(locus_tag_apart[a][0][aaaa]);
                                                                     }
                                                                 }
                                                                 do_assign = 0;
                                                                 goto try_assign;
                                                             }else{
-                                                                if(diag > 1)std::cout << "NO MATCH" << '\t' << locus_tag_apart[b][cc][ccc] << '\t' << final_answer[x][xx][xxx] << '\n';
+                                                                if(diag > 2)std::cout << "NO MATCH" << '\t' << locus_tag_apart[b][cc][ccc] << '\t' << final_answer[x][xx][xxx] << '\n';
                                                                 for(int d = 0; d < locus_tag_apart.size(); ++d){
                                                                     if(b == d)continue;
                                                                     for(int dd = 0; dd < locus_tag_apart[d].size(); ++dd){
@@ -2205,8 +2207,8 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                                                                                 if(d == 0)ee = 1;
                                                                                 for(int eee = 0; eee < locus_tag_apart[d][ee].size(); ++eee){
                                                                                     if(locus_tag_apart[d][ee][eee] == final_answer[x][xx][xxx]){
-                                                                                        if(diag>1)std::cout<< "MATCH BETWEEN LOCUS TAG APART AND LOCUS TAG APART BOT" << '\t' << locus_tag_apart[b][cc][ccc] << '\t' << "AND MATCH BETWEEN LOCUS TAG APART AND FINAL ANSWER" << '\t' << locus_tag_apart[d][ee][eee] << final_answer[x][xx][xxx] << '\t' << '\n';
-                                                                                        if(diag>1)std::cout << "INSERTING DO_ASSIGN BOT Loop" << '\t' << locus_tag_apart[a][aa][aaa] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
+                                                                                        if(diag > 2)std::cout<< "MATCH BETWEEN LOCUS TAG APART AND LOCUS TAG APART BOT" << '\t' << locus_tag_apart[b][cc][ccc] << '\t' << "AND MATCH BETWEEN LOCUS TAG APART AND FINAL ANSWER" << '\t' << locus_tag_apart[d][ee][eee] << final_answer[x][xx][xxx] << '\t' << '\n';
+                                                                                        if(diag > 2)std::cout << "INSERTING DO_ASSIGN BOT Loop" << '\t' << locus_tag_apart[a][aa][aaa] << '\t' << "onto" << '\t' << x << '\t' << "at pos" << '\t' << pos << '\n';
                                                                                         final_answer[x][pos].push_back(locus_tag_apart[a][aa][aaa]);
                                                                                         do_assign = 0;
                                                                                         goto try_assign;
@@ -2250,7 +2252,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                     for(int bb = 0; bb < locus_tag_apart[a].size(); ++bb){
                         for(int bbb = 0; bbb < locus_tag_apart[a][bb].size(); ++bbb){
                             int pos = locus_ft[a][bb];
-                            if(diag > 1)std::cout << "ASSIGN" << '\t' << locus_tag_apart[a][bb][bbb] << '\t' << "onto" << '\t' << save_x << '\t' << "at pos" << pos << '\n';
+                            if(diag > 2)std::cout << "ASSIGN" << '\t' << locus_tag_apart[a][bb][bbb] << '\t' << "onto" << '\t' << save_x << '\t' << "at pos" << pos << '\n';
                             final_answer[save_x][pos].push_back(locus_tag_apart[a][bb][bbb]);
                         }
                     }
@@ -2260,13 +2262,21 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
             if(diag > 1){
                 std::cout << "FINAL SOG GROUPS" << '\n';
                 for(int z = 0; z < final_answer.size(); ++z){
+                    bool print_n{1};
                     for(int zz = 0; zz < final_answer[z].size(); ++zz){
                         for(int zzz = 0; zzz < final_answer[z][zz].size(); ++zzz){
-                            std::cout << final_answer[z][zz][zzz] << '\t';
+                            if(final_answer[z][zz][zzz] != ""){
+                                std::cout << final_answer[z][zz][zzz] << '\t';
+                                print_n = 0;
+                            }
                         }
+                        if(print_n == 0){
+                            std::cout << '\n';
+                        }
+                    }
+                    if(print_n = 0){
                         std::cout << '\n';
                     }
-                    std::cout << '\n';
                 }
             }
 
@@ -2286,7 +2296,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
 
             auto stop = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-            if(diag > 0){
+            if(diag > 2){
                 std::cout << "TIME BY MATCH" << '\t' << duration.count() << '\t' << "microseconds" << '\n';
             }
 
@@ -2475,9 +2485,8 @@ void while_loop(std::vector<int>*** HOG_master, int j, int p, int **zstore, int 
         }
     }
     if(diag > 1){
-        std::cout << "prechecking" << '\t' << samp_back << '\t' << samp_forw << std::endl;
         std::cout << "HOG" << '\t' << j << '\t' << "Gene" << '\t' << (*feature_tables_info)[ftk].prod_acc[m] << '\t' << (*feature_tables_info)[ftk].locus_tag[m] << '\t' << "of feature table" << '\t' << (*feature_tables_info)[ftk].name << '\t' << "line #" << '\t' << m << '\n';
-        std::cout << "FT_1_line_#" << '\t' << "FT_2_line_#" << '\t' << "HOG_FT_1" << '\t' << "HOG_FT_2" << '\n';
+        std::cout << "FT_line_#" << '\t' << "HOG_#" << '\t' << "locus_tag" << '\n';
     }
 
     z_max_operon_count = pre_operon_count + post_operon_count;  
@@ -2553,7 +2562,7 @@ void while_loop(std::vector<int>*** HOG_master, int j, int p, int **zstore, int 
         int z = (*feature_tables_info)[ftk].HOG[n];
         if(n == m){
             if(diag > 1){
-                std::cout << "n in window is" << '\t' << n  << '\t' << z << '\n';
+                std::cout << n  << '\t' << z << '\t' << (*feature_tables_info)[ftk].locus_tag[n] << "*" << '\n';
             } 
             ++n;
             if(adjust_n == 1){ // check if n should be set to 0 after completing the wrap around
