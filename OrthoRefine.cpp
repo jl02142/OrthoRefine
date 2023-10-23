@@ -662,15 +662,17 @@ namespace File_read{
             }
         }
 
-        for(int i = 0; i < GCF_length; ++i){
-            std::cout << GCF_prefix[i] << '\n';
+        if(diag > 2){
+            for(int i = 0; i < GCF_length; ++i){
+                std::cout << GCF_prefix[i] << '\n';
+            }
+            // Uncomment below loop to verify order GCF prefix
+            for(std::string i : ordered_GCF_input){
+                std::cout << i << '\t';
+            }
+            std::cout << '\n';
         }
-        // Uncomment below loop to verify order GCF prefix
-        for(std::string i : ordered_GCF_input){
-            std::cout << i << '\t';
-        }
-        std::cout << '\n';
-        
+
         std::vector<std::string> ft_file_names(GCF_length);
         ss.clear(); 
         ss.str(""); // clear previous file "N0.tsv" from ss
@@ -1612,7 +1614,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                 }
 
                 for(int l = 0; l < countdown; ++l){
-                    if(diag > 1){
+                    if(diag > 2){
                         std::cout << "Starting countdown" << '\t' << "i" << '\t' << i << '\t' << "j" << '\t' << j << '\t' << "L" << '\t' << l << std::endl;
                     }
                     int m = HOG_master[i][j][hmk][l];
@@ -1993,7 +1995,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
 
                     skip_vec_loop_count:;
 
-                    if(diag > 0){
+                    if(diag > 2){
                         std::cout << "HOG" << '\t' << j << '\t' << "z_ind" << '\t' << z_ind[0] << '\t' << together2[z_ind[0]][0] << '\n';
                     }
 
@@ -2539,7 +2541,7 @@ void while_loop(std::vector<int>*** HOG_master, int j, int p, int **zstore, int 
         end = m + samp_forw + ((window_size / 2) - adjust_post) + 1;                        
     }
 
-    if(diag > 1){
+    if(diag > 2){
         std::cout << "END" << '\t' << end << '\t' << "n" << '\t' << n << '\t' << samp_forw << '\t' << samp_back << '\t' << (*feature_tables_info)[ftk].chromosome << '\n';
     }
 
@@ -2632,7 +2634,13 @@ void while_loop(std::vector<int>*** HOG_master, int j, int p, int **zstore, int 
                 ++loop_count2;
                 operon_2D = 0;
                 if(diag > 1){
-                    std::cout << n  << '\t' << z << '\t' << (*feature_tables_info)[ftk].operon[n] << '\n';    
+                    std::cout << n << '\t' << z << '\t' << (*feature_tables_info)[ftk].locus_tag[n];
+                }
+                if(diag > 2){
+                    std::cout << '\t' << (*feature_tables_info)[ftk].operon[n];
+                }
+                if(diag > 1){
+                    std::cout << '\n';
                 }
                 if(diag > 3){
                     std::cout << "Matching scaffolds" << '\t'<< (*feature_tables_info)[ftk].scaffold[m] << '\t' << (*feature_tables_info)[ftk].scaffold[n] << '\n';
