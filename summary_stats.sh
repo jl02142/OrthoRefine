@@ -313,7 +313,8 @@ echo "layout order automatic" >> $sankey_out
 echo "  justifyends Y" >> $sankey_out
 
 if [ $complex == 1 ]; then
-    echo "1-to-1 orthologs are HOGs that contained precisely one gene per genome. 
+    echo "
+    1-to-1 orthologs are HOGs that contained precisely one gene per genome. 
     0 or 1 gene are HOGs missing an ortholog in at least one genome and none of the genomes contributed more than one gene. 
     HOGs with paralogs are the HOGs where at least one genome contributed more than one gene. Unchanged synteny confirmed (USC) are the HOGs that remained the same after OrthoRefine and the groupings had synteny support. 
     Unchanged synteny unconfirmed (USU) are the HOGs that remained the same after OrthoRefine, but the groups did not have synteny support. 
