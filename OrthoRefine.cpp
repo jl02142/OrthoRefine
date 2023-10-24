@@ -1657,7 +1657,7 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                                             continue;
                                         }
                                         if(zstore[z][z2D] == ustore[u][u2D] && ucheck[u] != 1 && zcheck[z] != 1 && ustore[u][u2D] != -999 && zstore[z][z2D] != -999){ 
-                                            if(diag <= 2){
+                                            if(diag == 1 || diag == 2){
                                                 std::cout << "Match" << '\t' << zstore[z][z2D] << '\n';
                                             }else if(diag > 2){
                                                 std::cout << "Match" << '\t' << zstore[z][z2D] << '\t' << ustore[u][u2D] << '\t' << zcheck[z] << '\t' << ucheck[u] << '\t' << z << '\t' << u << '\n';
