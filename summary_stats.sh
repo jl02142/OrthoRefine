@@ -91,12 +91,13 @@ if [ -z $sankey_out ]; then
 fi
 
 # don't overwrite sankeymatic files
-if test -f "$sankey_out"; then
-    echo "$sankey_out exists. Change current file name or delete it. Exiting"
-    return 1 2>/dev/null
-    { exit 1; }
+if (( $complex > 0 )); then
+    if test -f "$sankey_out"; then
+        echo "$sankey_out exists. Change current file name or delete it. Exiting"
+        return 1 2>/dev/null
+        { exit 1; }
+    fi
 fi
-echo $OF_File
 # create array containing the commands to be run
 cluster_submit=( "${cluster_submit[@]}" "./$exe --input $input --OF_file $OF_file --window_size $window_size --synteny_ratio $synteny_ratio --print_all 0 --run_all_orthofinder 0 " )
 cluster_submit=( "${cluster_submit[@]}" "./$exe --input $input --OF_file $OF_file --window_size $window_size --synteny_ratio $synteny_ratio --print_all 1 --run_all_orthofinder 0 " )
@@ -126,7 +127,7 @@ one_to_one_orthologs=$(cat $OF_file | awk -F '\t' '{for(i=3; i<=NF; ++i){if(i ==
 hogs_with_paralogs=$(cat $OF_file | grep -c ",")
 #echo $hogs_with_paralogs
 
-# number of HOGs where each genome contributed 0 or 1 gene. No paralogs and not in 1-to-1 relationship
+# number of HOGs where each genome contributed 0 or 1 gene HOGs. No paralogs and not in 1-to-1 relationship
 zero_or_one_hogs=$(($total_hogs-$one_to_one_orthologs-$hogs_with_paralogs))
 #echo $zero_or_one_hogs
 
@@ -191,11 +192,11 @@ number_of_hogs_changed=$(cat $outfile\_0\_1 | tail -n -1 | cut -f2)
 number_of_hogs_with_paralogs_CWS=$(cat $outfile\_0\_0 | tail -n -1 | cut -f2)
 #echo $number_of_hogs_with_paralogs_CWS
 
-#number of HOGs that were 0 or 1 gene per genome refined
+#number of HOGs that were 0 or 1 gene HOGs per genome refined
 number_hogs_zero_or_one_refined=$(($number_of_hogs_changed-$number_of_hogs_with_paralogs_CWS-$number_hogs_one_to_one_refined))
 #echo $number_hogs_zero_or_one_refined
 
-#number of HOGs that were 0 or 1 gene per genome unrefined
+#number of HOGs that were 0 or 1 gene HOGs per genome unrefined
 number_of_hogs_zero_or_one_unrefined=$(($zero_or_one_hogs-$number_hogs_zero_or_one_refined))
 #echo $number_of_hogs_zero_or_one_unrefined
 
@@ -205,11 +206,11 @@ cat $outfile\_2\_1 | head -n -1 | tail +2 | cut -f1 | cut -c 7- | sed 's/0\{1,6\
 number_of_hogs_one_to_one_orthologs_USC_and_CWS=$(comm -12 to_compare_1 to_compare_3 | wc -l)
 #echo $number_of_hogs_one_to_one_orthologs_USC_and_CWS
 
-# number of HOGS 1-to-1 unchanged and synteny unconfirmed (USU)
+# number of 1-to-1 HOGs unchanged and synteny unconfirmed (USU)
 number_of_hogs_one_to_one_USU=$(($one_to_one_orthologs-$number_of_hogs_one_to_one_orthologs_USC_and_CWS))
 #echo $number_of_hogs_one_to_one_USU
 
-# number of HOGs 1-to-1 Unchanged confirmed with synteny (USC)
+# number of 1-to-1 HOGs Unchanged confirmed with synteny (USC)
 number_of_hogs_one_to_one_USC=$(($one_to_one_orthologs-$number_hogs_one_to_one_refined-$number_of_hogs_one_to_one_USU))
 #echo $number_of_hogs_one_to_one_USC
 
@@ -251,72 +252,152 @@ rm file_3502
 rm one_zero_uniq
 rm two_zero_uniq
 
+if (( $complex > 0 )); then
 
-echo "OrthoFinder HOGs ["$one_to_one_orthologs"] 1-to-1 orthologs" >> $sankey_out
-echo "OrthoFinder HOGs ["$zero_or_one_hogs"] 0 or 1 gene" >> $sankey_out
-echo "OrthoFinder HOGs ["$hogs_with_paralogs"] HOGs with paralogs" >> $sankey_out
+    echo "OrthoFinder HOGs ["$one_to_one_orthologs"] 1-to-1 HOGs" >> $sankey_out
+    echo "OrthoFinder HOGs ["$zero_or_one_hogs"] 0 or 1 gene HOGs" >> $sankey_out
+    echo "OrthoFinder HOGs ["$hogs_with_paralogs"] Paralog HOGs" >> $sankey_out
 
-echo "HOGs with paralogs ["$number_hogs_only_1_genome_no_refine"] HOGs only 1 genome #800080" >> $sankey_out
-echo $complex
-if [ $complex == 0 ]; then
-    echo "HOGs with paralogs ["$number_hogs_with_paralogs_refined"] HOGs changed #800080" >> $sankey_out
-    echo "HOGs with paralogs ["$number_paralogs_USC"] HOGs USC #800080" >> $sankey_out
-    echo "HOGs with paralogs ["$number_paralogs_USU"] HOGs USU #800080" >> $sankey_out
-    echo "1-to-1 orthologs ["$number_hogs_one_to_one_refined"] HOGs changed" >> $sankey_out
-    echo "1-to-1 orthologs ["$number_of_hogs_one_to_one_USC"] HOGs USC" >> $sankey_out
-    echo "1-to-1 orthologs ["$number_of_hogs_one_to_one_USU"] HOGs USU" >> $sankey_out
-    echo "0 or 1 gene["$number_hogs_zero_or_one_refined"] HOGs changed" >> $sankey_out
-    echo "0 or 1 gene["$number_zero_or_one_USC"] HOGs USC" >> $sankey_out
-    echo "0 or 1 gene["$number_zero_or_one_USU"] HOGs USU" >> $sankey_out
-else
-    echo "HOGs with paralogs ["$number_hogs_with_paralogs_refined"] HOGs with paralogs CWS #800080" >> $sankey_out
-    echo "HOGs with paralogs ["$number_paralogs_USC"] HOGs with paralogs USC #800080" >> $sankey_out
-    echo "HOGs with paralogs ["$number_paralogs_USU"] HOGs with paralogs USU #800080" >> $sankey_out
-    echo "1-to-1 orthologs ["$number_hogs_one_to_one_refined"] HOGs 1-to-1 CWS" >> $sankey_out
-    echo "1-to-1 orthologs ["$number_of_hogs_one_to_one_USC"] HOGs 1-to-1 USC" >> $sankey_out
-    echo "1-to-1 orthologs ["$number_of_hogs_one_to_one_USU"] HOGs 1-to-1 USU" >> $sankey_out
-    echo "0 or 1 gene["$number_hogs_zero_or_one_refined"] HOGs 0 or 1 CWS" >> $sankey_out
-    echo "0 or 1 gene["$number_zero_or_one_USC"] HOGs 0 or 1 USC" >> $sankey_out
-    echo "0 or 1 gene["$number_zero_or_one_USU"] HOGs 0 or 1 USU" >> $sankey_out
-    echo "HOGs with paralogs CWS["$number_hogs_with_paralogs_refined"] HOGs changed #e58e73" >> $sankey_out
-    echo "HOGs 1-to-1 CWS ["$number_hogs_one_to_one_refined"] HOGs changed #e58e73" >> $sankey_out
-    echo "HOGs 0 or 1 CWS["$number_hogs_zero_or_one_refined"] HOGs changed #e58e73" >> $sankey_out
-    echo "HOGs 1-to-1 USC ["$number_of_hogs_one_to_one_USC"] HOGs USC" >> $sankey_out
-    echo "HOGs with paralogs USC ["$number_paralogs_USC"] HOGs USC" >> $sankey_out
-    echo "HOGs 0 or 1 USC ["$number_zero_or_one_USC"] HOGs USC" >> $sankey_out
-    echo "HOGs 1-to-1 USU ["$number_of_hogs_one_to_one_USU"] HOGs USU #8db600" >> $sankey_out
-    echo "HOGs with paralogs USU ["$number_paralogs_USU"] HOGs USU #8db600" >> $sankey_out
-    echo "HOGs 0 or 1 USU ["$number_zero_or_one_USU"] HOGs USU #8db600" >> $sankey_out
-    echo ":HOGs with paralogs USC #228B22" >> $sankey_out
-    echo ":HOGs with paralogs USU #228B22" >> $sankey_out
-    echo ":HOGs 1-to-1 USC #228B22" >> $sankey_out
-    echo ":HOGs 1-to-1 USU #228B22" >> $sankey_out
-    echo ":HOGs 0 or 1 USC #228B22" >> $sankey_out
-    echo ":HOGs 0 or 1 USU #228B22" >> $sankey_out
-    echo ":HOGs 1-to-1 CWS #ff0000" >> $sankey_out
-    echo ":HOGs 0 or 1 CWS #ff0000" >> $sankey_out
-    echo ":HOGs with paralogs CWS #ff0000" >> $sankey_out
+    if [ $complex != 1 ]; then
+        echo "Paralog HOGs ["$number_hogs_only_1_genome_no_refine"] HOGs only 1 genome #000000" >> $sankey_out
+    fi
+
+    if [ $complex == 1 ]; then 
+        number_paralog_HOGs_unchanged=$(($number_hogs_with_paralogs_unrefined+$number_hogs_only_1_genome_no_refine))
+        echo "Paralog HOGs ["$number_paralog_HOGs_unchanged"] HOGs unchanged #228B22" >> $sankey_out
+        echo "1-to-1 HOGs ["$number_hogs_one_to_one_unrefined"] HOGs unchanged" >> $sankey_out
+        echo "0 or 1 gene HOGs["$number_of_hogs_zero_or_one_unrefined"] HOGs unchanged" >> $sankey_out
+        echo "Paralog HOGs ["$number_hogs_with_paralogs_refined"] HOGs changed #e58e73" >> $sankey_out
+        echo "1-to-1 HOGs ["$number_hogs_one_to_one_refined"] HOGs changed #e58e73" >> $sankey_out
+        echo "0 or 1 gene HOGs["$number_hogs_zero_or_one_refined"] HOGs changed #e58e73" >> $sankey_out
+    elif [ $complex == 2 ]; then
+        echo "Paralog HOGs ["$number_hogs_with_paralogs_refined"] HOGs changed #800080" >> $sankey_out
+        echo "Paralog HOGs ["$number_paralogs_USC"] HOGs USC #800080" >> $sankey_out
+        echo "Paralog HOGs ["$number_paralogs_USU"] HOGs USU #800080" >> $sankey_out
+        echo "1-to-1 HOGs ["$number_hogs_one_to_one_refined"] HOGs changed" >> $sankey_out
+        echo "1-to-1 HOGs ["$number_of_hogs_one_to_one_USC"] HOGs USC" >> $sankey_out
+        echo "1-to-1 HOGs ["$number_of_hogs_one_to_one_USU"] HOGs USU" >> $sankey_outHOGs 0 or 1
+        echo "0 or 1 gene HOGs["$number_hogs_zero_or_one_refined"] HOGs changed" >> $sankey_out
+        echo "0 or 1 gene HOGs["$number_zero_or_one_USC"] HOGs USC" >> $sankey_out
+        echo "0 or 1 gene HOGs["$number_zero_or_one_USU"] HOGs USU" >> $sankey_out
+    elif [ $complex == 3 ]; then
+        echo "Paralog HOGs ["$number_hogs_with_paralogs_refined"] Paralog HOGs CWS #800080" >> $sankey_out
+        echo "Paralog HOGs ["$number_paralogs_USC"] Paralog HOGs USC #800080" >> $sankey_out
+        echo "Paralog HOGs ["$number_paralogs_USU"] Paralog HOGs USU #800080" >> $sankey_out
+        echo "1-to-1 HOGs ["$number_hogs_one_to_one_refined"] 1-to-1 HOGs CWS" >> $sankey_out
+        echo "1-to-1 HOGs ["$number_of_hogs_one_to_one_USC"] 1-to-1 HOGs USC" >> $sankey_out
+        echo "1-to-1 HOGs ["$number_of_hogs_one_to_one_USU"] 1-to-1 HOGs USU" >> $sankey_out
+        echo "0 or 1 gene HOGs["$number_hogs_zero_or_one_refined"] 0 or 1 gene HOGs CWS" >> $sankey_out
+        echo "0 or 1 gene HOGs["$number_zero_or_one_USC"] 0 or 1 gene HOGs USC" >> $sankey_out
+        echo "0 or 1 gene HOGs["$number_zero_or_one_USU"] 0 or 1 gene HOGs USU" >> $sankey_out
+        echo "Paralog HOGs CWS["$number_hogs_with_paralogs_refined"] HOGs changed #e58e73" >> $sankey_out
+        echo "1-to-1 HOGs CWS ["$number_hogs_one_to_one_refined"] HOGs changed #e58e73" >> $sankey_out
+        echo "0 or 1 gene HOGs CWS["$number_hogs_zero_or_one_refined"] HOGs changed #e58e73" >> $sankey_out
+        echo "1-to-1 HOGs USC ["$number_of_hogs_one_to_one_USC"] HOGs USC" >> $sankey_out
+        echo "Paralog HOGs USC ["$number_paralogs_USC"] HOGs USC" >> $sankey_out
+        echo "0 or 1 gene HOGs USC ["$number_zero_or_one_USC"] HOGs USC" >> $sankey_out
+        echo "1-to-1 HOGs USU ["$number_of_hogs_one_to_one_USU"] HOGs USU #8db600" >> $sankey_out
+        echo "Paralog HOGs USU ["$number_paralogs_USU"] HOGs USU #8db600" >> $sankey_out
+        echo "0 or 1 gene HOGs USU ["$number_zero_or_one_USU"] HOGs USU #8db600" >> $sankey_out
+        echo ":Paralog HOGs USC #228B22" >> $sankey_out
+        echo ":Paralog HOGs USU #228B22" >> $sankey_out
+        echo ":1-to-1 HOGs USC #228B22" >> $sankey_out
+        echo ":1-to-1 HOGs USU #228B22" >> $sankey_out
+        echo ":0 or 1 gene HOGs USC #228B22" >> $sankey_out
+        echo ":0 or 1 gene HOGs USU #228B22" >> $sankey_out
+        echo ":1-to-1 HOGs CWS #ff0000" >> $sankey_out
+        echo ":0 or 1 gene HOGs CWS #ff0000" >> $sankey_out
+        echo ":Paralog HOGs CWS #ff0000" >> $sankey_out
+    else  # complex == 4
+        echo "Paralog HOGs ["$number_hogs_with_paralogs_refined"] Paralog HOGs changed #800080" >> $sankey_out
+        number_paralogs_unchanged=$(($number_paralogs_USC+$number_paralogs_USU))
+        echo "Paralog HOGs ["$number_paralogs_unchanged"] Paralog HOGs unchanged #800080" >> $sankey_out
+        #echo "Paralog HOGs ["$number_paralogs_USU"] Paralog HOGs unchanged #800080" >> $sankey_out
+        echo "1-to-1 HOGs ["$number_hogs_one_to_one_refined"] 1-to-1 HOGs changed" >> $sankey_out
+        number_1_to_1_unchanged=$(($number_of_hogs_one_to_one_USC+$number_of_hogs_one_to_one_USU))
+        echo "1-to-1 HOGs ["$number_1_to_1_unchanged"] 1-to-1 HOGs unchanged" >> $sankey_out
+        #echo "1-to-1 HOGs ["$number_of_hogs_one_to_one_USU"] 1-to-1 HOGs unchanged" >> $sankey_out
+        echo "0 or 1 gene HOGs["$number_hogs_zero_or_one_refined"] 0 or 1 gene HOGs changed" >> $sankey_out
+        number_zero_or_one_unchanged=$(($number_zero_or_one_USC+$number_zero_or_one_USU))
+        echo "0 or 1 gene HOGs["$number_zero_or_one_unchanged"] 0 or 1 gene HOGs unchanged" >> $sankey_out
+        #echo "0 or 1 gene HOGs["$number_zero_or_one_USU"] 0 or 1 gene HOGs unchanged" >> $sankey_out
+        echo "Paralog HOGs changed["$number_hogs_with_paralogs_refined"] HOGs changed #e58e73" >> $sankey_out
+        echo "1-to-1 HOGs changed ["$number_hogs_one_to_one_refined"] HOGs changed #e58e73" >> $sankey_out
+        echo "0 or 1 gene HOGs changed["$number_hogs_zero_or_one_refined"] HOGs changed #e58e73" >> $sankey_out
+        echo "1-to-1 HOGs unchanged ["$number_1_to_1_unchanged"] HOGs unchanged" >> $sankey_out
+        echo "Paralog HOGs unchanged ["$number_paralogs_unchanged"] HOGs unchanged" >> $sankey_out
+        echo "0 or 1 gene HOGs unchanged ["$number_zero_or_one_unchanged"] HOGs unchanged" >> $sankey_out
+        #echo "1-to-1 HOGs unchanged ["$number_of_hogs_one_to_one_USU"] HOGs unchanged #8db600" >> $sankey_out
+        #echo "Paralog HOGs unchanged ["$number_paralogs_USU"] HOGs unchanged #8db600" >> $sankey_out
+        #echo "0 or 1 gene HOGs unchanged ["$number_zero_or_one_USU"] HOGs unchanged #8db600" >> $sankey_out
+        echo ":Paralog HOGs unchanged #228B22" >> $sankey_out
+        echo ":1-to-1 HOGs unchanged #228B22" >> $sankey_out
+        #echo ":1-to-1 HOGs USU #228B22" >> $sankey_out
+        echo ":0 or 1 gene HOGs unchanged #228B22" >> $sankey_out
+        #echo ":0 or 1 gene HOGs USU #228B22" >> $sankey_out
+        echo ":1-to-1 HOGs changed #ff0000" >> $sankey_out
+        echo ":0 or 1 gene HOGs changed #ff0000" >> $sankey_out
+        echo ":Paralog HOGs changed #ff0000" >> $sankey_out
+    fi
+
+    if [ $complex == 2 ] || [ $complex == 3 ]; then
+        echo "HOGs USC ["$number_hogs_USC"] HOGs unchanged #0F0" >> $sankey_out
+        echo "HOGs USU ["$number_hogs_USU"] HOGs unchanged #0F0" >> $sankey_out
+    fi
+
+    echo ":HOGs changed #ff0000" >> $sankey_out
+    echo ":Paralog HOGs #800080" >> $sankey_out
+    echo ":HOGs unchanged #228B22" >> $sankey_out
+    if [ $complex != 1 ]; then
+        echo ":HOGs only 1 genome #000000" >> $sankey_out
+    fi
+
+    # figure settings
+    echo "size w 1200" >> $sankey_out
+    echo "  h 1200" >> $sankey_out
+    echo "layout order automatic" >> $sankey_out
+    echo "  justifyends Y" >> $sankey_out
+
+    if [ $complex == 2 ] || [ $complex == 3 ]; then
+        echo "
+        1-to-1 HOGs are HOGs that contained precisely one gene per genome. 
+        0 or 1 gene HOGs are HOGs missing an ortholog in at least one genome and none of the genomes contributed more than one gene. 
+        Paralog HOGs are the HOGs where at least one genome contributed more than one gene. Unchanged synteny confirmed (USC) are the HOGs that remained the same after OrthoRefine and the groupings had synteny support. 
+        Unchanged synteny unconfirmed (USU) are the HOGs that remained the same after OrthoRefine, but the groups did not have synteny support. 
+        Changed with synteny (CWS) are the HOGs where a refinement could be made as supported by synteny. HOGs where only one genome contributed several genes, and no other genomes were present, can’t be analyzed with OrthoRefine."
+    fi
 fi
 
-echo "HOGs USC ["$number_hogs_USC"] HOGs unchanged #0F0" >> $sankey_out
-echo "HOGs USU ["$number_hogs_USU"] HOGs unchanged #0F0" >> $sankey_out
+echo "Total HOGs: $total_hogs
+Total 1-to-1 HOGs: $one_to_one_orthologs
+Total 0-or-1 HOGs: $zero_or_one_hogs
+Total Paralog HOGs: $hogs_with_paralogs
+Confirmed 1-to-1 HOGs: $number_of_hogs_one_to_one_USC
+Unconfirmed 1-to-1 HOGs: $number_of_hogs_one_to_one_USU
+Modified 1-to-1 HOGs: $number_hogs_one_to_one_refined
+Confirmed 0-or-1 HOGs: $number_zero_or_one_USC
+Unconfirmed 0-or-1 HOGs: $number_zero_or_one_USU
+Modified 0-or-1 HOGs: $number_hogs_zero_or_one_refined
+Confirmed Paralog HOGs: $number_paralogs_USC
+Unconfirmed Paraolg HOGs: $(( $number_paralogs_USU+$number_hogs_only_1_genome_no_refine ))
+Modified Paralog HOGs: $number_hogs_with_paralogs_refined
+Total Confirmed HOGs: $(( $number_of_hogs_one_to_one_USC+$number_zero_or_one_USC+$number_paralogs_USC ))
+Total Unconfirmed HOGs: $(( $number_of_hogs_one_to_one_USU+$number_zero_or_one_USU+$number_paralogs_USU+$number_hogs_only_1_genome_no_refine ))
+Total Modified HOGs: $(( $number_hogs_one_to_one_refined+$number_hogs_zero_or_one_refined+$number_hogs_with_paralogs_refined ))"
 
-echo ":HOGs changed #ff0000" >> $sankey_out
-echo ":HOGs with paralogs #800080" >> $sankey_out
-echo ":HOGs unchanged #228B22" >> $sankey_out
-echo ":HOGs only 1 genome #000001" >> $sankey_out
-
-# figure settings
-echo "size w 1400" >> $sankey_out
-echo "  h 1400" >> $sankey_out
-echo "layout order automatic" >> $sankey_out
-echo "  justifyends Y" >> $sankey_out
-
-if [ $complex == 1 ]; then
-    echo "
-    1-to-1 orthologs are HOGs that contained precisely one gene per genome. 
-    0 or 1 gene are HOGs missing an ortholog in at least one genome and none of the genomes contributed more than one gene. 
-    HOGs with paralogs are the HOGs where at least one genome contributed more than one gene. Unchanged synteny confirmed (USC) are the HOGs that remained the same after OrthoRefine and the groupings had synteny support. 
-    Unchanged synteny unconfirmed (USU) are the HOGs that remained the same after OrthoRefine, but the groups did not have synteny support. 
-    Changed with synteny (CWS) are the HOGs where a refinement could be made as supported by synteny. HOGs where only one genome contributed several genes, and no other genomes were present, can’t be analyzed with OrthoRefine."
-fi
+echo "Total HOGs: $total_hogs
+Total 1-to-1 HOGs: $one_to_one_orthologs
+Total 0-or-1 HOGs: $zero_or_one_hogs
+Total Paralog HOGs: $hogs_with_paralogs
+Confirmed 1-to-1 HOGs: $number_of_hogs_one_to_one_USC
+Unconfirmed 1-to-1 HOGs: $number_of_hogs_one_to_one_USU
+Modified 1-to-1 HOGs: $number_hogs_one_to_one_refined
+Confirmed 0-or-1 HOGs: $number_zero_or_one_USC
+Unconfirmed 0-or-1 HOGs: $number_zero_or_one_USU
+Modified 0-or-1 HOGs: $number_hogs_zero_or_one_refined
+Confirmed Paralog HOGs: $number_paralogs_USC
+Unconfirmed Paraolg HOGs: $(( $number_paralogs_USU+$number_hogs_only_1_genome_no_refine ))
+Modified Paralog HOGs: $number_hogs_with_paralogs_refined
+Total Confirmed HOGs: $(( $number_of_hogs_one_to_one_USC+$number_zero_or_one_USC+$number_paralogs_USC ))
+Total Unconfirmed HOGs: $(( $number_of_hogs_one_to_one_USU+$number_zero_or_one_USU+$number_paralogs_USU+$number_hogs_only_1_genome_no_refine ))
+Total Modified HOGs: $(( $number_hogs_one_to_one_refined+$number_hogs_zero_or_one_refined+$number_hogs_with_paralogs_refined ))"> OrthoRefine_summary.txt
