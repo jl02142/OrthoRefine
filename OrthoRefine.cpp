@@ -180,6 +180,10 @@ int main(int argc, char* argv[]){
 
     // if == 0, run on predetermined combinations of window size and synteny ratio
     if(single_run == 0){
+        if((*feature_tables_info)[0].size_strct > 35){
+            std::cout << "ERROR: record_ws_sr array is hard coded to max 35 samples (600 size array). Please update code to allow for more samples." << '\n';
+            std::exit(EXIT_FAILURE);
+        }
         int window_size_arr[10] = {2, 4, 6, 8, 10, 30, 40, 60, 80, 100}; // window size combinations
         double **synteny_ratio_arr = new double*[10];
         for(int wsa = 0; wsa < 10; ++wsa){  // wsa = window size array
@@ -225,7 +229,7 @@ int main(int argc, char* argv[]){
         4                0.25 0.5
         6                0.20, 0.50
         8                0.20, 0.30, 0.50
-        10, 20, 40, 60   0.20, 0.3, 0.5
+        10, 30, 40, 60   0.20, 0.3, 0.5
         80, 100          0.10, 0.2, 0.3, 0.5
         */
 
@@ -263,9 +267,9 @@ int main(int argc, char* argv[]){
         double ***record_ws_sr = new double**[HOG_line];      // array to store window size and synteny ratio values into
         double ***record_ws_sr_indx = new double**[HOG_line]; // array to store window size and synteny ratio index values into
         for(int i = 0; i < HOG_line; ++i){
-            record_ws_sr[i] = new double*[100];
-            record_ws_sr_indx[i] = new double*[100];
-            for(int j = 0; j < 100; ++j){
+            record_ws_sr[i] = new double*[600];
+            record_ws_sr_indx[i] = new double*[600];
+            for(int j = 0; j < 600; ++j){
                 record_ws_sr[i][j] = new double[2];
                 record_ws_sr_indx[i][j] = new double[2];
                 for(int k = 0; k < 2; ++k){
@@ -365,12 +369,25 @@ int main(int argc, char* argv[]){
                             ++total_hog_refine;
                             flag_hog_counted = 1;
                         }
+                        int gene_name_indx{-1};
+                        int k_indx{-1};
+                        int l_indx{-1};
+                        for(int k = 0; k < pairwise; ++k){
+                            for(int l = 0; l < 2; ++l){
+                                if(HOG_master[k][i][l][0] != -9999){
+                                    gene_name_indx = k + l;
+                                    k_indx = k;
+                                    l_indx = l;
+                                    goto need_break_2;
+                                }
+                            }
+                        }
+                        need_break_2:;
+                        outfile << "N0.HOG" << std::setfill('0') << std::setw(7) << i << '\t' << i << '.'<<  sog_count << '\t' << (*feature_tables_info)[gene_name_indx].gene_name[HOG_master[k_indx][i][l_indx][0]] << '\t' << HOG_match[h][i][j] << '\n';
                         ++final_refine;
-                        outfile << "N0.HOG" << std::setfill('0') << std::setw(7) << i << '\t' << i << '.'<<  sog_count << '\t' <<
-                        (*feature_tables_info)[0].gene_name[HOG_master[0][i][0][0]] << '\t' << HOG_match[h][i][j] << '\n';
+                        //outfile << "N0.HOG" << std::setfill('0') << std::setw(7) << i << '\t' << i << '.'<<  sog_count << '\t' << (*feature_tables_info)[0].gene_name[HOG_master[0][i][0][0]] << '\t' << HOG_match[h][i][j] << '\n';
                         ++sog_count;
                     }
-                
                 }
                 
                 if(new_long_chain == 1){  // new longest so replace
@@ -484,7 +501,21 @@ int main(int argc, char* argv[]){
                         flag_hog_counted = 1;
                     }
                     ++final_refine;
-                    outfile << "N0.HOG" << std::setfill('0') << std::setw(7) << i << '\t' << i << '.'<<  sog_count << '\t' << (*feature_tables_info)[0].gene_name[HOG_master[0][i][0][0]] << '\t' << HOG_match[i][j] << '\n';
+                    int gene_name_indx{-1};
+                    int k_indx{-1};
+                    int l_indx{-1};
+                    for(int k = 0; k < pairwise; ++k){
+                        for(int l = 0; l < 2; ++l){
+                            if(HOG_master[k][i][l][0] != -9999){
+                                gene_name_indx = k + l;
+                                k_indx = k;
+                                l_indx = l;
+                                goto need_break;
+                            }
+                        }
+                    }
+                    need_break:;
+                    outfile << "N0.HOG" << std::setfill('0') << std::setw(7) << i << '\t' << i << '.'<<  sog_count << '\t' << (*feature_tables_info)[gene_name_indx].gene_name[HOG_master[k_indx][i][l_indx][0]] << '\t' << HOG_match[i][j] << '\n';
                     ++sog_count;
                 }
             }
