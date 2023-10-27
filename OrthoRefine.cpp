@@ -312,15 +312,24 @@ int main(int argc, char* argv[]){
             std::string outfile_name_2 = outfile_name + '_' + std::to_string(ws) + '_' + temp + '_' + std::to_string(print_all_orthofinder) + '_' + std::to_string(run_all_orthofinder);
             std::ofstream outfile(outfile_name_2);
 
+            outfile << "HOG" << '\t' << "SOG" << '\t' << "Gene_name" << '\t'; // outfile header line
+                for(int i = 0; i < (*feature_tables_info)[0].size_strct; ++i){
+                    outfile << (*feature_tables_info)[i].name;
+                    if(i < (*feature_tables_info)[0].size_strct - 1){
+                        outfile << '\t';
+                    }
+                }
+            outfile << '\n';
+
             int final_refine{0};      // total number of refinements, HOGs may be counted twice if a HOG can be split mutiple times.
             int total_hog_refine{0};  // total number of HOGs refined. HOGs will only be counted once regardless of how many splits. 
             bool flag_hog_counted{0}; // keep track is a hog is already counted for total_hog_refine
 
             int hog_count{0};
             for(int i = 0; i < HOG_line; ++i){                          // loop through each HOG
-            //if(i != 2){
-            //    continue;
-            //}
+                //if(i != 2){
+                //    continue;
+                //}
                 int within_longest_chain_count{0};
                 int new_long_chain{0};                                  // 0 no new long chain, 1 is new long chain, 2 is tie
                 if(HOG_match[h][i][0] != ""){
@@ -328,20 +337,13 @@ int main(int argc, char* argv[]){
                 }
                 std::vector<int> remember_j;
 
-                outfile << "HOG" << '\t' << "SOG" << '\t' << "Gene_name" << '\t'; // outfile header line
-                for(int i = 0; i < (*feature_tables_info)[0].size_strct; ++i){
-                    outfile << (*feature_tables_info)[i].name;
-                    if(i < (*feature_tables_info)[0].size_strct - 1){
-                        outfile << '\t';
-                    }
-                }
-                outfile << '\n';
+                
                 int sog_count{0};
                 for(int j = 0; j < HOG_match[h][i].size(); ++j){        // loop through each SOG
                     int chain_tab_count{0};
 
-                    for(int k = 0; k < HOG_match[h][i][j].size(); ++k){ // loop through each member of the SOG
-                        if(HOG_match[h][i][j][k] == '\t'){              // count number of tabs (genomes) to find longest SOG
+                    for(int k = 1; k < HOG_match[h][i][j].size(); ++k){ // loop through each member of the SOG
+                        if(HOG_match[h][i][j][k] == '\t' && HOG_match[h][i][j][k - 1] != '\t'){              // count number of tabs (genomes) to find longest SOG
                             ++chain_tab_count;
                         }else if(HOG_match[h][i][j][k] == ','){         // if contains a paralog (contains a ","), don't allow to be considered as longest
                             if(paralogs_print == 0)goto skip_chain;
@@ -409,7 +411,7 @@ int main(int argc, char* argv[]){
                         record_ws_sr_indx[i][k][1] = sr_indx;
                     }
                 }
-                flag_hog_counted = 0;
+                flag_hog_counted = 0;                //std::cout << "within_longest" << '\t' << within_longest_chain_count << '\n';
                 sog_per_combo[h] += within_longest_chain_count; // for calculating average below
             }
             outfile << "Number of HOGs refined:" << '\t' << total_hog_refine << '\t' << "for a total refinement of" << '\t' << final_refine << '\n';
@@ -425,7 +427,7 @@ int main(int argc, char* argv[]){
             }else{
                 ++sr_indx;
             }
-            //std::cout << "AVG" << '\t' << double(sog_per_combo[h]) / hog_count << '\t' << sog_per_combo[h] << '\t' << hog_count<< '\n';
+            std::cout << "AVG" << '\t' << double(sog_per_combo[h]) / hog_count << '\t' << sog_per_combo[h] << '\t' << hog_count<< '\n';
             jan_avg[h] = double(sog_per_combo[h]) / hog_count;
         }
         
