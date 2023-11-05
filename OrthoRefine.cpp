@@ -321,6 +321,25 @@ int main(int argc, char* argv[]){
                 }
             outfile << '\n';
 
+            int samp_cnt = (*feature_tables_info)[0].size_strct;          // sample_count; number of user provided samples; better name
+            int samp_trk = 1;          // sample tracker
+            int loop_trk = 0;          // loop tracker
+            int firt_com = 0;          // first combo. tracks "first" sample of combo
+            int secd_com = 1;          // second combo. tracks "second" sample of combo
+            int combo[pairwise][2];
+            for(int i = 0; i < pairwise; ++i, ++loop_trk){
+                if(loop_trk == samp_cnt - samp_trk){
+                    firt_com = samp_trk;
+                    secd_com = firt_com + 1;
+                    loop_trk = 0;
+                    ++samp_trk;
+                }
+
+                combo[i][0] = firt_com;
+                combo[i][1] = secd_com;
+                ++secd_com;
+            }
+
             int final_refine{0};      // total number of refinements, HOGs may be counted twice if a HOG can be split mutiple times.
             int total_hog_refine{0};  // total number of HOGs refined. HOGs will only be counted once regardless of how many splits. 
             bool flag_hog_counted{0}; // keep track is a hog is already counted for total_hog_refine
@@ -374,13 +393,37 @@ int main(int argc, char* argv[]){
                         int gene_name_indx{-1};
                         int k_indx{-1};
                         int l_indx{-1};
+                        int m_indx{-1};
                         for(int k = 0; k < pairwise; ++k){
                             for(int l = 0; l < 2; ++l){
                                 if(HOG_master[k][i][l][0] != -9999){
-                                    gene_name_indx = k + l;
-                                    k_indx = k;
-                                    l_indx = l;
-                                    goto need_break_2;
+                                    int c = 0;
+                                    std::string temp_string = "";
+                                    bool tab_flag{0};
+                                    while(true){
+                                        if(HOG_match[h][i][j][c] != '\t'){
+                                            tab_flag = 1;
+                                        }
+                                        if(HOG_match[h][i][j][c] == '\t' && tab_flag == 1){
+                                            break;
+                                        }else if(HOG_match[h][i][j][c] == ','){
+                                            break;
+                                        }else if(HOG_match[h][i][j][c] == '\t'){
+                                            ++c;
+                                            continue;
+                                        }
+                                        temp_string += HOG_match[h][i][j][c];
+                                        ++c;
+                                    }
+                                    gene_name_indx = combo[k][l];
+                                    for(int m = 0; m < HOG_master[k][i][l].size(); ++m){
+                                        if(temp_string == (*feature_tables_info)[gene_name_indx].locus_tag[HOG_master[k][i][l][m]] || temp_string == (*feature_tables_info)[gene_name_indx].prod_acc[HOG_master[k][i][l][m]]){
+                                            k_indx = k;
+                                            l_indx = l;
+                                            m_indx = m;
+                                            goto need_break_2;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -494,6 +537,25 @@ int main(int argc, char* argv[]){
         }
         outfile << '\n';
 
+        int samp_cnt = (*feature_tables_info)[0].size_strct;          // sample_count; number of user provided samples; better name
+        int samp_trk = 1;          // sample tracker
+        int loop_trk = 0;          // loop tracker
+        int firt_com = 0;          // first combo. tracks "first" sample of combo
+        int secd_com = 1;          // second combo. tracks "second" sample of combo
+        int combo[pairwise][2];
+        for(int i = 0; i < pairwise; ++i, ++loop_trk){
+            if(loop_trk == samp_cnt - samp_trk){
+                firt_com = samp_trk;
+                secd_com = firt_com + 1;
+                loop_trk = 0;
+                ++samp_trk;
+            }
+
+            combo[i][0] = firt_com;
+            combo[i][1] = secd_com;
+            ++secd_com;
+        }
+
         for(int i = 0; i < HOG_line; ++i){
             int sog_count{0};
             for(int j = 0; j < HOG_match[i].size(); ++j){
@@ -506,18 +568,42 @@ int main(int argc, char* argv[]){
                     int gene_name_indx{-1};
                     int k_indx{-1};
                     int l_indx{-1};
+                    int m_indx{-1};
                     for(int k = 0; k < pairwise; ++k){
                         for(int l = 0; l < 2; ++l){
                             if(HOG_master[k][i][l][0] != -9999){
-                                gene_name_indx = k + l;
-                                k_indx = k;
-                                l_indx = l;
-                                goto need_break;
+                                int c = 0;
+                                std::string temp_string = "";
+                                bool tab_flag{0};
+                                while(true){
+                                    if(HOG_match[i][j][c] != '\t'){
+                                        tab_flag = 1;
+                                    }
+                                    if(HOG_match[i][j][c] == '\t' && tab_flag == 1){
+                                        break;
+                                    }else if(HOG_match[i][j][c] == ','){
+                                        break;
+                                    }else if(HOG_match[i][j][c] == '\t'){
+                                        ++c;
+                                        continue;
+                                    }
+                                    temp_string += HOG_match[i][j][c];
+                                    ++c;
+                                }
+                                gene_name_indx = combo[k][l];
+                                for(int m = 0; m < HOG_master[k][i][l].size(); ++m){
+                                    if(temp_string == (*feature_tables_info)[gene_name_indx].locus_tag[HOG_master[k][i][l][m]] || temp_string == (*feature_tables_info)[gene_name_indx].prod_acc[HOG_master[k][i][l][m]]){
+                                        k_indx = k;
+                                        l_indx = l;
+                                        m_indx = m;
+                                        goto need_break;
+                                    }
+                                }
                             }
                         }
                     }
                     need_break:;
-                    outfile << "N0.HOG" << std::setfill('0') << std::setw(7) << i << '\t' << i << '.'<<  sog_count << '\t' << (*feature_tables_info)[gene_name_indx].gene_name[HOG_master[k_indx][i][l_indx][0]] << '\t' << HOG_match[i][j] << '\n';
+                    outfile << "N0.HOG" << std::setfill('0') << std::setw(7) << i << '\t' << i << '.'<<  sog_count << '\t' << (*feature_tables_info)[gene_name_indx].gene_name[HOG_master[k_indx][i][l_indx][m_indx]] << '\t' << HOG_match[i][j] << '\n';
                     ++sog_count;
                 }
             }
