@@ -428,7 +428,7 @@ int main(int argc, char* argv[]){
                             }
                         }
                         need_break_2:;
-                        outfile << "N0.HOG" << std::setfill('0') << std::setw(7) << i << '\t' << i << '.'<<  sog_count << '\t' << (*feature_tables_info)[gene_name_indx].gene_name[HOG_master[k_indx][i][l_indx][0]] << '\t' << HOG_match[h][i][j] << '\n';
+                        outfile << "N0.HOG" << std::setfill('0') << std::setw(7) << i << '\t' << i << '.'<<  sog_count << '\t' << (*feature_tables_info)[gene_name_indx].gene_name[HOG_master[k_indx][i][l_indx][m_indx]] << '\t' << HOG_match[h][i][j] << '\n';
                         ++final_refine;
                         //outfile << "N0.HOG" << std::setfill('0') << std::setw(7) << i << '\t' << i << '.'<<  sog_count << '\t' << (*feature_tables_info)[0].gene_name[HOG_master[0][i][0][0]] << '\t' << HOG_match[h][i][j] << '\n';
                         ++sog_count;
