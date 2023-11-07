@@ -179,6 +179,10 @@ while true; do
     elif [ $thing == --prod_acc ];then
         prod_acc="$2"
         refine_cmd=$refine_cmd" --prod_acc $prod_acc"
+        shift 2
+    elif [ $thing == --run_combo ];then
+        refine_cmd=$refine_cmd" --run_combo"
+        shift
     else
     echo $@
         echo "Error: bad argument provided " $thing
