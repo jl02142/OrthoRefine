@@ -80,7 +80,7 @@ int main(int argc, char* argv[]){
     int ft_gene_together{1};                // How should genes in a HOG be treated if they are next to eachother in the FT? 0 = print together if best; 1 = skip 
     int print_all_orthofinder{0};           // Controls printing all orthologs for benchmark file
     int benchmark{0};                       // Should the benchmark file be created?
-    bool single_run{0};                     // changed to 1 when user provides window size or synteny ratio. If 0, run on programmed combinations of ws and sr
+    bool run_combo{0};                     // changed to 1 when user provides window size or synteny ratio. If 0, run on programmed combinations of ws and sr
     int run_single_HOG{-1};                 // Run only on one HOG to save time
     int run_all_orthofinder{0};             // Run on all OrthoFinder results instead of those with at least one paralog
     int paralogs_print{0};                  // If paralogs should be considered for longest SOG printing. 0 = no, 1 = yes
@@ -112,13 +112,11 @@ int main(int argc, char* argv[]){
         }else if(arg == "--window_size"){
             File_handler::is_number(argv[++i]);
             window_size = std::stoi(argv[i]);
-            single_run = 1;
         }else if(arg == "--OF_file"){
             OrthFnd_file.assign(argv[++i]);
         }else if(arg == "--synteny_ratio"){
             char *end_pointer;
             long int temp_numb = std::strtol(argv[++i], &end_pointer, 10);
-            single_run = 1;
             if(end_pointer[0] == '.'){
                 synteny_ratio = std::stof(argv[i]);
             }else{
@@ -158,6 +156,8 @@ int main(int argc, char* argv[]){
             run_single_HOG = std::stoi(argv[++i]);
         }else if(arg == "--run_all_orthofinder"){
             run_all_orthofinder = std::stoi(argv[++i]);
+        }else if(arg == "--run_combo"){
+            run_combo = 1;
         }else{
             std::cout << "Error: invalid argument provided." << '\t' << arg << '\n';
             std::exit(EXIT_FAILURE);
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]){
     int pairwise = ((*feature_tables_info)[0].size_strct * ((*feature_tables_info)[0].size_strct - 1)) / 2;   
 
     // if == 0, run on predetermined combinations of window size and synteny ratio
-    if(single_run == 0){
+    if(run_combo == 1){
         if((*feature_tables_info)[0].size_strct > 35){
             std::cout << "ERROR: record_ws_sr array is hard coded to max 35 samples (600 size array). Please update code to allow for more samples." << '\n';
             std::exit(EXIT_FAILURE);
