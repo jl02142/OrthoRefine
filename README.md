@@ -101,10 +101,8 @@ Indepedently
 ./orthorefine.exe --input input.txt --OF_file N0.tsv --window_size window_size_number --synteny_ratio synteny_ratio_number 
 `
 
-The support script, [download_ft_fafiles.sh](https://github.com/jl02142/OrthoRefine/blob/main/download_ft_fafiles.sh), may be run independently to download the fasta and feature tables files. 
-
 ### Runtime parameters (window size & synteny ratio)
-To determine default parameters, we evaluated different combinations of window size and synteny ratio using average max number of orthologous genes (AMNOG) represented in a single SOG (syntenous ortholog group). We reccomend using a smaller window size (default 8) and higher synteny ratio (default 0.5), espically for closely related genomes; a larger window or lower synteny ratio may be better suited as the evolutionary distance of the genomes increases. Users may view the AMNOG for their dataset on predetermined combinations of window size and synteny ratio by setting the runtime option --run_combo to 1 (Calculating the AMNOG is a parallelized process that is currently memory intensive. OrthoRefine will return the killed error if the memory of the system is exceeded). 
+To determine default parameters, we evaluated different combinations of window size and synteny ratio using average max number of orthologous genes (AMNOG) represented in a single SOG (syntenous ortholog group). We reccomend using a smaller window size (default 8) and higher synteny ratio (default 0.5), espically for closely related genomes; a larger window or lower synteny ratio may be better suited as the evolutionary distance of the genomes increases (e.g., window size 30 and synteny ratio 0.2). Users may view the AMNOG for their dataset on predetermined combinations of window size and synteny ratio by setting the runtime option --run_combo to 1 (Calculating the AMNOG is a parallelized process that is currently memory intensive. OrthoRefine will return the killed error if the memory of the system is exceeded). 
 
 Additional runtime parameters are --input, the user created input file, and --OF_file, the output from OrthoFinder. 
 
@@ -137,3 +135,19 @@ N0.HOG0000019   19.1    putative ABC transporter ATP-binding subunit YhdZ       
 ...
 Number of HOGs refined: 408     for a total refinement of       468
 ```
+
+## Support Scripts
+
+There are 3 Bash support scripts to support OrthoRefine: [master_OrthoRefine.sh](https://github.com/jl02142/OrthoRefine/blob/main/master_OrthoRefine.sh) may be used to download the data files and run OrthoFinder and OrthoRefine with a single command, [download_ft_fafiles.sh](https://github.com/jl02142/OrthoRefine/blob/main/download_ft_fafiles.sh) may be run independently to download the fasta and feature tables files, and [summary_stats.sh](https://github.com/jl02142/OrthoRefine/blob/main/summary_stats.sh) may be used to generate summary stats (number of 1-to-1 HOGs, 0-or-1 HOGS, paralogous HOGs. number of HOGs confirmed, unconfirmed, or modified by synteny) for a particular window size and synteny ratio. 
+
+`
+./master_OrthoRefine.sh --input input.txt --OF_file N0.tsv --window_size window_size_number --synteny_ratio synteny_ratio_number --OrthoRefine orthorefine.exe --OrthoFinder /path/to/orthofinder.exe -f /path/to/fasta
+`
+
+`
+./download_ft_fafiles.sh input.txt
+`
+
+`
+./summary_stats.sh --input input.txt --OF_file N0.tsv --window_size 8 --synteny_ratio 0.5 --exe ./OrthoRefine.exe
+`
