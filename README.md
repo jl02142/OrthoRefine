@@ -23,20 +23,24 @@ Example required user created input file, "input.txt". Each line must contain on
 >GCF_016904755.1\
 >GCF_902709585.1
 
-Single command run
-
+Single command to run OrthoFinder and OrthoRefine\
 `
-./master_OrthoRefine.sh --input input.txt --OF_file N0.tsv --window_size window_size_number --synteny_ratio synteny_ratio_number --OrthoRefine orthorefine.exe --OrthoFinder /path/to/orthofinder.exe
+./master_OrthoRefine.sh --input input.txt --OF_file N0.tsv --window_size window_size_number --synteny_ratio synteny_ratio_number --OrthoRefine orthorefine.exe --OrthoFinder /path/to/orthofinder.exe -f /path/to/fasta
 `
 
-The default outfile is called "outfile_ws_sr_pa_ra" where ws is the value of window size, sr is the synteny ratio, pa is print_all (default 0), and ra is run_all_orthofinder (default 0); these four suffixes are always appended. 
+Command to run OrthoRefine only\
+`
+./orthorefine.exe --input input.txt --OF_file N0.tsv --window_size window_size_number --synteny_ratio synteny_ratio_number
+`
+
+The default outfile is called "outfile_ws_sr_pa_ra" where ws is the value of window size, sr is the synteny ratio, pa is print_all (default 0), and ra is run_all_orthofinder (default 0); these four suffixes are always appended. OrthoRefine's outfile has been formatted to match OrthoFinder's, except the second column will print the SOG number and the third will print the gene name from the feature table of the first genome in the SOG (genomes are ordered by their apperance in the user created input file). 
 
 ## OrthoRefine's method summary
-OrthoRefine automates using synteny (conserved gene order) information to refine prior homolog (orthologous group) identification. The analysis begins by constructing a window of user specified size centered at each gene of the HOG. Excluding this gene from the HOG (located at the center of the window), OrthoRefine evaluates the synteny by counting matching pairs of genes inside the window; matching pairs consist of genes assigned to the same group by a prior program (e.g. HOG group in the OrthoFinder output) (Figure 1). We note that genes only need to be within the window and are not required to be in the same order, and genes that do not have a homolog in the other genome are not included in the window. The synteny ratio is calculated by taking the number of matching pairs and dividing it by the window size. If the ratio is greater than a cutoff (default 0.5), the genes at the center of the window are considered syntenic. 
+OrthoRefine automates using synteny (conserved gene order) information to refine prior homolog (orthologous group) identification. The analysis begins by constructing a window of user specified size centered at each gene of the HOG. Excluding this gene from the HOG (located at the center of the window), OrthoRefine evaluates the synteny by counting matching pairs of genes inside the window; matching pairs consist of genes assigned to the same group by a prior program (e.g. HOG group in the OrthoFinder output). We note that genes only need to be within the window and are not required to be in the same order, and genes that do not have a homolog in the other genome are not included in the window (the window would be extended by one per missing homolog for that pairwise comparison). The synteny ratio is calculated by taking the number of matching pairs and dividing it by the window size. If the ratio is greater than a cutoff (default 0.5), the genes at the center of the window are considered syntenic. 
 
 <figure>
-    <img src="https://github.com/jl02142/OrthoRefine/assets/23033795/9329a402-7014-4e37-909c-7531b9d45b00" width="1000" height="400">
-    <figcaption>Figure 1. The window around <em>E. fergusonii’s</em> HVX45_RS11505 and its OrthoFinder matches b3271 & b0652 of <em>E. coli</em>; all three were assigned to HOG 19 by OrthoFinder and are represented by yellow circles with the red box drawn around them. Other orthologous genes (those assigned to matching HOGs by OrthoFinder) within the 10-gene window are designated by the same colored circles. In contrast, white circles indicate that the gene has no ortholog within the same window in the other genomes. The first number below each circle is the HOG assigned by OrthoFinder, while the second entry is the locus tag. As nine out of ten genes surrounding RS11505 had a match in the window centered at b3271, we concluded that there is a syntenic relationship between <em>E. coli</em> b3271 and <em>E. fergusonii</em> RS11505, and they are orthologs while b0652 is presumed to be a paralog of RS11505; none of the genes surrounding b0562 had a match within the window around RS11505 </figcaption>
+    <img src="https://github.com/jl02142/OrthoRefine/assets/23033795/8f711260-18b7-4681-a5e4-52021f741206" width="1000" height="400">
+    <figcaption>The window around three genes assigned to HOG19 by OrthoFinder demonstrates how OrthoRefine determines which of the E. coli genes is an ortholog of E. fergusonii’s HVX45_RS11505. The HOG19 genes are shown with yellow fill, other genes assigned to the same HOG are shown in matching colors, and genes that have orthologs in other genomes outside the displayed window are shown in white. The first number below each circle denotes the HOG assigned by OrthoFinder, while the second entry shows the locus tag.</figcaption>
 </figure>
 
 \
@@ -52,7 +56,7 @@ OrthoRefine requires, as input, a file of prior homolog identification; OrthoRef
 ### OrthoRefine
 OrthoRefine's install files may be found at its [Github release page](https://github.com/jl02142/OrthoRefine/releases)
 
-OrthoRefine may be installed on Linux systems with a C++ compiler
+OrthoRefine can be installed in GNU or UNIX shell on Linux or MacOS
 
 `
 g++ -O3 orthorefine.cpp -o orthorefine.exe
@@ -78,6 +82,9 @@ Example user created input file, "input.txt". Each line must contain one GCF acc
 >GCF_016904755.1\
 >GCF_902709585.1
 
+### Eukaryote data
+While we found OrthoRefine to function on eukaryote data (<i>Saccharomyces</i>), it will not function with all eukaryote datasets. OrthoRefine currently requires the "locus_tag" column to contain data in the RefSeq feature table file. Some eukaryote data at RefSeq is missing the "locus_tag" information. Additonally, OrthoRefine currently does not handle the repeated gene identifier from isoforms in the annotation. A planned future update would resolve these issues. 
+
 ## Running OrthoRefine
 
 OrthoRefine may be run indepdently of OrthoFinder or a support script, [master_OrthoRefine.sh](https://github.com/jl02142/OrthoRefine/blob/main/master_OrthoRefine.sh), may be used to download the data files and run OrthoFinder and OrthoRefine with a single command. 
@@ -85,7 +92,7 @@ OrthoRefine may be run indepdently of OrthoFinder or a support script, [master_O
 As single command
 
 `
-./master_OrthoRefine.sh --input input.txt --OF_file N0.tsv --window_size window_size_number --synteny_ratio synteny_ratio_number --OrthoRefine orthorefine.exe --OrthoFinder /path/to/orthofinder.exe
+./master_OrthoRefine.sh --input input.txt --OF_file N0.tsv --window_size window_size_number --synteny_ratio synteny_ratio_number --OrthoRefine orthorefine.exe --OrthoFinder /path/to/orthofinder.exe -f /path/to/fasta
 `
 
 Indepedently
@@ -97,7 +104,7 @@ Indepedently
 The support script, [download_ft_fafiles.sh](https://github.com/jl02142/OrthoRefine/blob/main/download_ft_fafiles.sh), may be run independently to download the fasta and feature tables files. 
 
 ### Runtime parameters (window size & synteny ratio)
-To determine default parameters, we evaluated different combinations of window size and synteny ratio using average max number of orthologous genes (AMNOG) represented in a single SOG (syntenous ortholog group). We reccomend using a smaller window size (default 8) and higher synteny ratio (default 0.5), espically for closely related genomes; a larger window or lower synteny ratio may be better suited as the evolutionary distance of the genomes increases. Users may view the AMNOG for their dataset on predetermined combinations of window size and synteny ratio by not providing the window size and synteny ratio at runtime. 
+To determine default parameters, we evaluated different combinations of window size and synteny ratio using average max number of orthologous genes (AMNOG) represented in a single SOG (syntenous ortholog group). We reccomend using a smaller window size (default 8) and higher synteny ratio (default 0.5), espically for closely related genomes; a larger window or lower synteny ratio may be better suited as the evolutionary distance of the genomes increases. Users may view the AMNOG for their dataset on predetermined combinations of window size and synteny ratio by setting the runtime option --run_combo to 1 (Calculating the AMNOG is a parallelized process that is currently memory intensive. OrthoRefine will return the killed error if the memory of the system is exceeded). 
 
 Additional runtime parameters are --input, the user created input file, and --OF_file, the output from OrthoFinder. 
 
@@ -114,19 +121,19 @@ OrthoRefine has several runtime options, some which standard end-users may find 
 
 #### Advanced options
 
---diag will print extra information to diagnosis potential problems. Accepted values are 0 (none, default), 1 (short), or 2 (long) or 3 (long long) or 4 (everything). Not intended for everyday use. 
+--diag will print extra information to diagnosis potential problems. Accepted values are 0 (none, default), 1 (short), or 2 (long) or 3 (long long) or 4 (everything). Setting diag to 2 will allow users to see which genes were in the window and which of those were matches; we recommend that users combine --diag 2 with --run_single_HOG to reduce the amount of text printed to the std out. 
 
 ### Interpreting the ouput
 
-OrthoRefine's output has been formatted to closely match OrthoFidner's. A change has been made to the second collumn where the orthogroup has been replaced with the SOG, and to the third collumn where the node has been replaced with the gene name from the feature table file of the first genome listed in the input file. (If the first genome does not contribute to a HOG, no gene name will be printed. If the first genome is present in the HOG with at least one gene, that gene's gene name will be listed for all SOGs. This will be fixed and updated in a future version.) The final line of the output contains the number of HOGs refined and the total number of refinements, which can be larger as a single HOG can be refined into mulitple SOGs. 
+OrthoRefine's output has been formatted to closely match OrthoFidner's. A change has been made to the second collumn where the orthogroup has been replaced with the SOG, and to the third collumn where the node has been replaced with the gene name from the feature table file of the first genome listed in the input file. The final line of the output contains the number of HOGs refined and the total number of refinements, which can be larger as a single HOG can be refined into mulitple SOGs. 
 
-An example output is below. HOG 5 is split into two SOGs, 5.0 which contains b1552 and HVX45_RS19450 and 5.1 which contains b0990, JRC41_RS13205, and GV529_RS02480. b0990 is annotated as "cold shock protein CspG" and currently this is printed for all 5.x SOGs (will be fixed in future version). 
+An example of OrthoRefine's output is below. HOG 5 is split into two SOGs, 5.0 which contains b1552 and HVX45_RS19450 and 5.1 which contains b0990, JRC41_RS13205, and GV529_RS02480.
 ```
 HOG     SOG     Gene_name       GCF_000005845.2_ASM584v2_feature_table.txt      GCF_013892435.1_ASM1389243v1_feature_table.txt  GCF_016904755.1_ASM1690475v2_feature_table.txt  GCF_902709585.1_H1-003-0086-C-F.v2_feature_table.txt
-N0.HOG0000005   5.0     cold shock protein CspG b1552   HVX45_RS19450
+N0.HOG0000005   5.0     cold shock-like protein CspI    b1552   HVX45_RS19450
 N0.HOG0000005   5.1     cold shock protein CspG b0990           JRC41_RS13205   GV529_RS02480
 N0.HOG0000019   19.0    glutamate/aspartate ABC transporter ATP binding subunit b0652   HVX45_RS07420   JRC41_RS15115   GV529_RS05870
-N0.HOG0000019   19.1    glutamate/aspartate ABC transporter ATP binding subunit b3271   HVX45_RS11505           GV529_RS14465
+N0.HOG0000019   19.1    putative ABC transporter ATP-binding subunit YhdZ       b3271   HVX45_RS11505           GV529_RS14465
 ...
 Number of HOGs refined: 408     for a total refinement of       468
 ```
