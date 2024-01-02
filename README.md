@@ -86,6 +86,13 @@ Example user created input file, "input.txt". Each line must contain one GCF acc
 ### Eukaryote data
 While we found OrthoRefine to function on eukaryote data (<i>Saccharomyces</i>), it will not function with all eukaryote datasets. OrthoRefine currently requires the "locus_tag" column to contain data in the RefSeq feature table file. Some eukaryote data at RefSeq is missing the "locus_tag" information. Additonally, OrthoRefine currently does not handle the repeated gene identifier from isoforms in the annotation. A planned future update would resolve these issues. 
 
+A modified input file may be submitted to tell OrthoRefine if a genome is linear or circular (second column c or l) and if it is archaea, bacteria, or eukaryote (third column a, b, or e). Circular genomes have their ends compared for syntenty (the window can "overflow" from one end to the other) while linear genes do not; by default, OrthoRefine analyzes all genomes as circular. Genomes denoted as archaea or bacteria will have operons detected by the gene gap method [(Yan and Moult. 2006.)](https://pubmed.ncbi.nlm.nih.gov/16755590/); by default, OrthoRefine does not consider operons. An operon may only count once per window for a match regardless of how many genes in the operon would have matched, the window is extended to account for this. 
+
+>GCF_000005845.2 c b\
+>GCF_013892435.1 c b\
+>GCF_016904755.1 c b\
+>GCF_902709585.1 l e
+
 ## Running OrthoRefine
 
 OrthoRefine may be run indepdently of OrthoFinder or a support script, [master_OrthoRefine.sh](https://github.com/jl02142/OrthoRefine/blob/main/master_OrthoRefine.sh), may be used to download the data files and run OrthoFinder and OrthoRefine with a single command. 
