@@ -10,20 +10,45 @@ for j in `seq 0 $length`; do
   fi
 done
 
+abe_flag=0                                                                      # archaea, bacteria, eukaryote flag
+for j in `seq 0 $length`; do
+  if [ "${DOWNLOAD[j]}" == a ] || [ "${DOWNLOAD[j]}" == A ] || [ "${DOWNLOAD[j]}" == b ] || [ "${DOWNLOAD[j]}" == B ] || [ "${DOWNLOAD[j]}" == e ] || [ "${DOWNLOAD[j]}" == E ]; then
+    abe_flag=1
+    break
+  fi
+done
+
 
 if [ $cl_flag == 1 ]; then
-  if ! (($length%2)); then                                                      # checks if any second column has "c" "C" "l" "L" and if any second column is missing data
-    echo "ERROR: Odd number of inputs from file. Check each column has an input"
+  if ! (($length%2)) && ! (($length+1%2)); then                                                      # checks if any second column has "c" "C" "l" "L" and if any second column is missing data
+	  echo "ERROR: Odd number of inputs from file. Check each column has an input"
     return 1 2>/dev/null
     { exit 1; }
   fi
-  for j in `seq 1 2 $length`; do                                                # checks if all second columns contain a letter and that letter is "c" "C" "l" "L"
-    if ! [ "${DOWNLOAD[j]}" == c ] && ! [ "${DOWNLOAD[j]}" == C ] && ! [ "${DOWNLOAD[j]}" == l ] && ! [ "${DOWNLOAD[j]}" == L ]; then
-      echo "ERROR: Second column contains not "c" or "C" or "l" or "L""
+  if [ $abe_flag == 0 ]; then
+    for j in `seq 1 2 $length`; do                                                # checks if all second columns contain a letter and that letter is "c" "C" "l" "L"
+      if ! [ "${DOWNLOAD[j]}" == c ] && ! [ "${DOWNLOAD[j]}" == C ] && ! [ "${DOWNLOAD[j]}" == l ] && ! [ "${DOWNLOAD[j]}" == L ]; then
+        echo "ERROR: Second column contains not "c" or "C" or "l" or "L""
+        return 1 2>/dev/null
+        { exit 1; }
+      fi
+    done
+  else
+    for j in `seq 1 3 $length`; do                                                # checks if all second columns contain a letter and that letter is "c" "C" "l" "L"
+      if ! [ "${DOWNLOAD[j]}" == c ] && ! [ "${DOWNLOAD[j]}" == C ] && ! [ "${DOWNLOAD[j]}" == l ] && ! [ "${DOWNLOAD[j]}" == L ]; then
+        echo "ERROR: Second column contains not "c" or "C" or "l" or "L""
+        return 1 2>/dev/null
+        { exit 1; }
+      fi
+    done
+    for j in `seq 2 3 $length`; do
+      if ! [ "${DOWNLOAD[j]}" == a ] && ! [ "${DOWNLOAD[j]}" == A ] && ! [ "${DOWNLOAD[j]}" == b ] && ! [ "${DOWNLOAD[j]}" == B ] && ! [ "${DOWNLOAD[j]}" == e ] && ! [ "${DOWNLOAD[j]}" == E ]; then
+      echo "ERROR: Third column contains not "a" or "A" or "b" or "B" or "e" or "E""
       return 1 2>/dev/null
       { exit 1; }
-    fi
-  done
+      fi
+    done
+  fi
 fi
 
 
@@ -32,11 +57,18 @@ motd_flag=0                                                                     
 j=0
 while [ $j -le $length ]; do                                                    # Loop through elements of "DOWNLOAD".
   check=${DOWNLOAD[j]}                                                          # # Check if both protein and feature_table file are already downloaded and then if so, skip downloading them again
-  if [ -f $check\_*_feature_table.txt.gz ] && [ ! -f $check\_*_protein.faa.gz ]; then
+  if [ -f $check\_*_feature_table.txt ] && [ -f $check\_*_protein.faa ]; then
+    ((j+=1))                                                                      # increment every time loop runs
+    if [ $cl_flag == 1 ]; then                                                    # increment again if there are 2 columns present as we need to skip the second column data
+      ((j+=1))
+    fi
+    if [ $abe_flag == 1 ]; then
+      ((j+=1))
+    fi
     continue
   fi
 
-
+  GCX=${DOWNLOAD[j]:0:3}                                                        # GCF or GCA
   add=                                                                          # Variable to store every 3 numbers after "GCF_" and before ".#" of accession.
   length2=${#DOWNLOAD[j]}                                                       # Number of characters in array element.
   for i in `seq 4 $length2`; do                                                 # Start at first number. Skip "GCF_".
@@ -49,8 +81,8 @@ while [ $j -le $length ]; do                                                    
     fi
   done
 
-  add=rsync://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/$add*/                       # See below.
-    if [ "$motd_flag" == "0" ]; then                                              # Only print NCBI MOTD once.
+  add=rsync://ftp.ncbi.nlm.nih.gov/genomes/all/$GCX/$add*/                      # See end.
+  if [ "$motd_flag" == "0" ]; then                                              # Only print NCBI MOTD once.
     motd_flag=1
     rsync -r --include "*_feature_table.txt.gz" --include "*_protein.faa.gz" --exclude="*" $add ./
   else
@@ -58,18 +90,17 @@ while [ $j -le $length ]; do                                                    
   fi
 
   #old rsync code using exclude isntead of include
+  #add=rsync://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/$add*/                       # See below.
   #if [ "$motd_flag" == "0" ]; then                                              # Only print NCBI MOTD once.
   #  motd_flag=1
-  #  rsync -r --exclude=*gpff* --exclude=md5checksums.txt \
+  #  rsync -r --exclude=*gpff* --exclude=md5checksums.txt --exclude=*rna*\
   #  --exclude=*annotation* --exclude=*genomic* --exclude=*assembly* \
   #  --exclude=*count* --exclude=*transl* --exclude=READ* --exclude=*wgsmaster* $add ./
   #else
-  #  rsync -r --no-motd --exclude=*gpff* --exclude=md5checksums.txt \
+  #  rsync -r --no-motd --exclude=*gpff* --exclude=md5checksums.txt --exclude=*rna*\
   #  --exclude=*annotation* --exclude=*genomic* --exclude=*assembly* \
   #  --exclude=*count* --exclude=*transl* --exclude=READ* --exclude=*wgsmaster* $add ./
   #fi
-
-  #echo $add
 
   check=${DOWNLOAD[j]}                                                          # Check if both protein and feature_table file were downloaded.
   if [ ! -f $check\_*_feature_table.txt.gz ]; then
@@ -86,6 +117,9 @@ while [ $j -le $length ]; do                                                    
 
   ((j+=1))                                                                      # increment every time loop runs
   if [ $cl_flag == 1 ]; then                                                    # increment again if there are 2 columns present as we need to skip the second column data
+    ((j+=1))
+  fi
+  if [ $abe_flag == 1 ]; then
     ((j+=1))
   fi
 
@@ -107,4 +141,3 @@ done
 # rsync -r --exclude=*gpff* --exclude=md5checksums.txt --exclude=*annotation* --exclude=*genomic* --exclude=*assembly* --exclude=*count*
 #  --exclude=*transl* --exclude=READ* rsync://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/009/085/*/
 # (--exclude excludes the other files, based on their name, that we don't want to download)
-
