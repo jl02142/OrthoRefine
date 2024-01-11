@@ -1,3 +1,4 @@
+#!/bin/bash
 IFS=$'\n | \t' read -d '' -a DOWNLOAD < $1                                      # Read GCF accession from this file. One sample per line. Store in array "DOWNLOAD".
 
 length=$(( ${#DOWNLOAD[@]} - 1 ))                                               # Number of samples from file.
