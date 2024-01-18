@@ -104,15 +104,16 @@ while [ $j -le $length ]; do                                                    
   #fi
 
   check=${DOWNLOAD[j]}                                                          # Check if both protein and feature_table file were downloaded.
-  if [ ! -f $check\_*_feature_table.txt.gz ]; then
-    echo "Error:" $check\_*_feature_table.txt.gz "not downloaded"
+  #echo $check
+  if [ ! -f $check*_feature_table.txt.gz ]; then
+    echo "Error:" $check*_feature_table.txt.gz "not downloaded"
   fi
-  if [ ! -f $check\_*_protein.faa.gz ]; then
-    echo "Error:" $check\_*_protein.faa.gz "not downloaded"
+  if [ ! -f $check*_protein.faa.gz ]; then
+    echo "Error:" $check*_protein.faa.gz "not downloaded"
   fi
 
-  gunzip $check\_*_feature_table.txt.gz                                         # unzip the downloaded files
-  gunzip $check\_*_protein.faa.gz
+  gunzip $check*_feature_table.txt.gz                                         # unzip the downloaded files
+  gunzip $check*_protein.faa.gz
 
 
 
@@ -142,3 +143,4 @@ done
 # rsync -r --exclude=*gpff* --exclude=md5checksums.txt --exclude=*annotation* --exclude=*genomic* --exclude=*assembly* --exclude=*count*
 #  --exclude=*transl* --exclude=READ* rsync://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/009/085/*/
 # (--exclude excludes the other files, based on their name, that we don't want to download)
+
