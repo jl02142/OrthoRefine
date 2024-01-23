@@ -159,3 +159,13 @@ There are 3 Bash support scripts to support OrthoRefine: [master_OrthoRefine.sh]
 `
 ./summary_stats.sh --input input.txt --OF_file N0.tsv --window_size 8 --synteny_ratio 0.5 --exe ./OrthoRefine.exe
 `
+
+The Linux commands chmod or dos2unix may be required to use the support scripts. chmod changes the script permissions so it may be run. dos2unix will make sure the file is in Linux format and not Windows (dos) format. 
+
+`
+chmod u+x download_ft_fafiles.sh
+`
+
+`
+dos2unix download_ft_fafiles.sh
+`
