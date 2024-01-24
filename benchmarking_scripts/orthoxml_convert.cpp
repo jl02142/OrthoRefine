@@ -11,11 +11,13 @@ int main(int argc, char* argv[]){
     
     std::cout << "This script was designed for use with OrthoRefine. The orthoxml file standard is very inconsistent (geneId vs protId, which one is it?!?). Please check the output file for errors." << '\n';
     std::cout << "Reminder: the input file with the GCF accession must have the same order as the Orthoxml file (samples appear in the same order) if using with OrthoRefine" << '\n'; // OrthoRefine takes order from the input file
+
     
     std::string inputFileName = "";
     std::string outputFileName = "";
     std::string orthoxmlHogFileName = "";
     std::string orthoxmlGroupFileName = "";
+    std::string ncbiTaxIdFileName = "";
     for(int i = 1; i < argc; ++i){
         std::string arg = argv[i];
         if(arg == "--input"){
@@ -26,10 +28,11 @@ int main(int argc, char* argv[]){
             orthoxmlHogFileName = argv[++i];
         }else if(arg == "--orthoxmlGroup"){
             orthoxmlGroupFileName = argv[++i];
-        }
-        else if(arg == "--help" || arg == "-h"){
+        }else if(arg == "--help" || arg == "-h"){
             std::cout << "Usage: ./orthoxml_convert.exe --input <input file> --output <output file> --orthoxmlHog <orthoxmlHog file> --orthoGroup <orthoxmlGroup file>" << '\n' << "If input not provdied, search orthoxml file for GCF or GCA accession, download them, and use them as input" << '\n'; 
             std::exit(EXIT_SUCCESS);
+        }else if(arg == "--ncbiTaxId"){
+            ncbiTaxIdFileName = argv[++i];
         }else{
             std::cout << "Error: incorrect option provided" << '\t' << argv[i] << '\n';
             std::cout << "Usage: ./orthoxml_convert.exe --input <input file> --output <output file> --orthoxml <orthoxmlHog file> --orthoGroup <orthoxmlGroup file>" << '\n' << "If input not provdied, search orthoxml file for GCF or GCA accession, download them, and use them as input" << '\n'; 
@@ -42,27 +45,28 @@ int main(int argc, char* argv[]){
     }
 
     std::string line;
-    std::vector<std::string> gcX;  // GCF or GCA accession numbers
     std::ifstream orthoxml;
-    orthoxml.open(orthoxmlHogFileName); // orthoxml file
-    while(std::getline(orthoxml, line)){
-            if(line.find("database name=") != std::string::npos){
-                size_t pos;
-                if(line.find("GCA_") != std::string::npos){
-                    pos = line.find("GCA_"); // set pos to the end of "name="
-                }else if(line.find("GCF_") != std::string::npos){
-                    pos = line.find("GCF_");
-                }else{
-                    gcX.push_back("NONE"); // no GCF or GCA found
-                    continue;
-                }
-                size_t pos2 = line.find_first_not_of("0123456789.", pos + 4); // set pos2 to the quotation mark after the GCA or GCF
-                std::string temp = line.substr(pos, pos2 - pos); // get the name between pos and pos2
-                gcX.push_back(temp);
-            }
-    }
-    orthoxml.close();
     if(inputFileName == ""){
+        std::vector<std::string> gcX;  // GCF or GCA accession numbers
+        orthoxml.open(orthoxmlHogFileName); // orthoxml file
+        while(std::getline(orthoxml, line)){
+                if(line.find("database name=") != std::string::npos){
+                    size_t pos;
+                    if(line.find("GCA_") != std::string::npos){
+                        pos = line.find("GCA_"); // set pos to the end of "name="
+                    }else if(line.find("GCF_") != std::string::npos){
+                        pos = line.find("GCF_");
+                    }else{
+                        gcX.push_back("NONE"); // no GCF or GCA found
+                        continue;
+                    }
+                    size_t pos2 = line.find_first_not_of("0123456789.", pos + 4); // set pos2 to the quotation mark after the GCA or GCF
+                    std::string temp = line.substr(pos, pos2 - pos); // get the name between pos and pos2
+                    gcX.push_back(temp);
+                }
+        }
+        orthoxml.close();
+
         std::cout << "No input file provided. Will find GCA_ and GCF_ in database." << '\n';
         if(!std::filesystem::exists("download_ft_fafiles.sh")){
             std::cout << "Error: download_ft_fafiles.sh not found in current directory" << '\n';
@@ -115,9 +119,61 @@ int main(int argc, char* argv[]){
             }
         }
     }
-    //for(int i = 0; i < fullInputNames.size(); ++i){
-    //    std::cout << i << '\t' << "fullinputnames" << '\t' << fullInputNames[i] << '\n';
-    //}
+    for(int i = 0; i < fullInputNames.size(); ++i){
+        //std::cout << i << '\t' << "fullinputnames" << '\t' << fullInputNames[i] << '\n';
+    }
+
+    std::vector<std::vector<std::string>> locusTag;
+    std::vector<std::vector<std::string>> oldLocusTag;
+    // read GCF_feature_table files to store the locus tag column and the old locus tag column
+    for(int i = 0; i < fullInputNames.size(); ++i){
+        std::ifstream featureTable;
+        std::string partName = fullInputNames[i].substr(0, fullInputNames[i].find_last_of("protein") - 7);
+        std::string featureTableFileName = partName + "_feature_table.txt";
+        //std::cout << "featureTableFileName" << '\t' << featureTableFileName << '\n';
+        featureTable.open(featureTableFileName);
+        std::vector<std::string> tempLocusTag;
+        std::vector<std::string> tempOldLocusTag;
+        getline(featureTable, line); // skip header
+        while(std::getline(featureTable, line)){
+            if(line.find("old_locus_tag") != std::string::npos){
+                size_t pos = line.find("old_locus_tag") + 14;
+                size_t pos2 = line.find('\t', pos);
+                std::string temp = line.substr(pos, pos2 - pos);
+                tempOldLocusTag.push_back(temp);
+                size_t pos3 = line.rfind('\t', pos2 - 1); // go back on tabs to find the locus tag column
+                size_t pos4 = line.rfind('\t', pos3 - 1);
+                size_t pos5 = line.rfind('\t', pos4 - 1);
+                size_t pos6 = line.rfind('\t', pos5 - 1);
+                temp = line.substr(pos6 + 1, pos5 - pos6 - 1); // this is the locus tag column
+                //std::cout << "temp" << '\t' << temp << '\n';
+                tempLocusTag.push_back(temp);
+            }else{
+                tempLocusTag.push_back("");
+                tempOldLocusTag.push_back("");
+            }
+        }
+        locusTag.push_back(tempLocusTag);
+        oldLocusTag.push_back(tempOldLocusTag);
+        featureTable.close();
+    }
+
+    // print locus tag and old locus tag columns to stdout
+    for(int i = 0; i < locusTag.size(); ++i){
+        for(int j = 0; j < locusTag[i].size(); ++j){
+            //std::cout << locusTag[i][j] << '\n';
+        }
+    }
+
+    std::vector<std::string> ncbiTaxIdVector;
+    if(ncbiTaxIdFileName != ""){
+        std::ifstream ncbiTaxIdFile;
+        ncbiTaxIdFile.open(ncbiTaxIdFileName);
+        while(std::getline(ncbiTaxIdFile, line)){
+            ncbiTaxIdVector.push_back(line);
+        }
+        ncbiTaxIdFile.close();
+    }
 
     std::ifstream orthoxmlGroup;
     orthoxmlGroup.open(orthoxmlGroupFileName); // orthoxml Group file
@@ -131,10 +187,29 @@ int main(int argc, char* argv[]){
     temp_vector.resize(fullInputNames.size());
     bool inDB{0}; // checks if sample has GCF or GCA
     std::string line2 = "";
+    std::string ncbiTaxId = "";
+    int genomeCount{-1};
     while(std::getline(orthoxml, line)){
         std::string gcXName = "";
-        if(line.find("database name=") != std::string::npos){
+        if(line.find("NCBITaxId=") != std::string::npos){
+            size_t pos = line.find("NCBITaxId=") + 11;
+            size_t pos2 = line.find('"', pos);
+            ncbiTaxId = line.substr(pos, pos2 - pos);
+        }else if(line.find("database name=") != std::string::npos){
             size_t pos;
+            bool taxId{0};
+            for(int i = 0; i < ncbiTaxIdVector.size(); ++i){
+                if(ncbiTaxId == ncbiTaxIdVector[i]){
+                    taxId = 1;
+                    break;
+                }
+            }
+            if(taxId == 1){
+                inDB = 1;
+                ++genomeCount;
+                //std::cout << "FOUND TAXID" << '\t' << ncbiTaxId << '\n';
+                continue;
+            }
             if(line.find("GCA_") != std::string::npos){
                 pos = line.find("GCA_"); // set pos to the end of "name="
             }else if(line.find("GCF_") != std::string::npos){
@@ -150,6 +225,7 @@ int main(int argc, char* argv[]){
                 if(fullFileName.find(gcXName) != std::string::npos){
                     //std::cout << "FOUND" << '\t' << fullInputNames[i] << std::endl;
                     inDB = 1;
+                    ++genomeCount;
                     break;
                 }
             }
@@ -211,6 +287,12 @@ int main(int argc, char* argv[]){
                                     }
                                     size_t posGeneId2 = line2.find('"', posGeneId);
                                     temp = line2.substr(posGeneId, posGeneId2 - posGeneId);
+                                    for(int j = 0; j < oldLocusTag[genomeCount].size(); ++j){
+                                        if(oldLocusTag[genomeCount][j] == temp){
+                                            temp = locusTag[genomeCount][j]; // replace old locus tag with locus tag
+                                            break;
+                                        }
+                                    }
                                     goto needbreak2;
                                 }
                             }while(getline(orthoxmlGroup, line2) && line2.find("</genes>") == std::string::npos);
@@ -317,13 +399,17 @@ int main(int argc, char* argv[]){
                     }
                     output << orthoGroup[i][j][k]; // need this as we don't want a tab after the final gene but a newline
                 }else if(orthoGroup[i][j].size() > 1 && k != orthoGroup[i][j].size() - 1){ // if there are multiple genes in a genome assigned to the same HOG, insert "," between them
+                    while(tabCount != j){
+                        output << '\t';
+                        ++tabCount;
+                    }
                     output << orthoGroup[i][j][k] << ", ";
                 }else if(tabCount != j){
                     while(tabCount != j){
                         output << '\t';
                         ++tabCount;
                     }
-                    output << orthoGroup[i][j][k] << '\t';;
+                    output << orthoGroup[i][j][k] << '\t';
                     ++tabCount;
                 }else{
                     output << orthoGroup[i][j][k] << '\t';
