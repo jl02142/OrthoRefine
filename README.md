@@ -122,7 +122,7 @@ OrthoRefine has several runtime options, some which standard end-users may find 
 --run_all_orthofinder Controls if OrthoRefine should only evaluate synteny on groups with paralogs (0, default) or on all groups (1).\
 --outfile sets the prefix of the outfile. The default outfile is called "outfile_ws_sr_pa_ra" where ws is the value of window size, sr is the synteny ratio, pa is print_all (default 0), and ra is run_all_orthofinder (default 0); these four suffixes are always appended. \
 --run_single_HOG Controls if OrthoRefine should only evaluate a single group for synteny, specified by the value. \
---prod_acc Controls if OrthoRefine should print the product accession (0, default) or locus tag (1).\
+--prod_acc Controls if OrthoRefine should print the product accession (0) or locus tag (1, default).\
 --path File path to location if the input files are located in a different location than the executable.
 
 #### Advanced options
