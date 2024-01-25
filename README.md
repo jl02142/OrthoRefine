@@ -118,11 +118,11 @@ Additional runtime parameters are --input, the user created input file, and --OF
 OrthoRefine has several runtime options, some which standard end-users may find useful and others intended for advanced end-users. 
 
 #### Standard options
---print_all Controls if OrthoRefine should print only those groups with changes supported by synteny (0, default) or print all groups even if no synteny support (1), or print only groups supported by synteny - even if no change occured in the group (2). 
---run_all_orthofinder Controls if OrthoRefine should only evaluate synteny on groups with paralogs (0, default) or on all groups (1).
---outfile sets the prefix of the outfile. The default outfile is called "outfile_ws_sr_pa_ra" where ws is the value of window size, sr is the synteny ratio, pa is print_all (default 0), and ra is run_all_orthofinder (default 0); these four suffixes are always appended. 
---run_single_HOG Controls if OrthoRefine should only evaluate a single group for synteny, specified by the value. 
---prod_acc Controls if OrthoRefine should print the product accession (0, default) or locus tag (1).
+--print_all Controls if OrthoRefine should print only those groups with changes supported by synteny (0, default) or print all groups even if no synteny support (1), or print only groups supported by synteny - even if no change occured in the group (2). \
+--run_all_orthofinder Controls if OrthoRefine should only evaluate synteny on groups with paralogs (0, default) or on all groups (1).\
+--outfile sets the prefix of the outfile. The default outfile is called "outfile_ws_sr_pa_ra" where ws is the value of window size, sr is the synteny ratio, pa is print_all (default 0), and ra is run_all_orthofinder (default 0); these four suffixes are always appended. \
+--run_single_HOG Controls if OrthoRefine should only evaluate a single group for synteny, specified by the value. \
+--prod_acc Controls if OrthoRefine should print the product accession (0, default) or locus tag (1).\
 --path File path to location if the input files are located in a different location than the executable.
 
 #### Advanced options
