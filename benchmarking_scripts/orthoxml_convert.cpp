@@ -125,6 +125,8 @@ int main(int argc, char* argv[]){
 
     std::vector<std::vector<std::string>> locusTag;
     std::vector<std::vector<std::string>> oldLocusTag;
+    std::vector<std::vector<std::string>> prodAcc;
+    std::vector<std::vector<std::string>> geneName;
     // read GCF_feature_table files to store the locus tag column and the old locus tag column
     for(int i = 0; i < fullInputNames.size(); ++i){
         std::ifstream featureTable;
@@ -134,6 +136,8 @@ int main(int argc, char* argv[]){
         featureTable.open(featureTableFileName);
         std::vector<std::string> tempLocusTag;
         std::vector<std::string> tempOldLocusTag;
+        std::vector<std::string> tempProdAcc;
+        std::vector<std::string> tempGeneName;
         getline(featureTable, line); // skip header
         while(std::getline(featureTable, line)){
             if(line.find("old_locus_tag") != std::string::npos){
@@ -141,20 +145,49 @@ int main(int argc, char* argv[]){
                 size_t pos2 = line.find('\t', pos);
                 std::string temp = line.substr(pos, pos2 - pos);
                 tempOldLocusTag.push_back(temp);
-                size_t pos3 = line.rfind('\t', pos2 - 1); // go back on tabs to find the locus tag column
-                size_t pos4 = line.rfind('\t', pos3 - 1);
-                size_t pos5 = line.rfind('\t', pos4 - 1);
-                size_t pos6 = line.rfind('\t', pos5 - 1);
-                temp = line.substr(pos6 + 1, pos5 - pos6 - 1); // this is the locus tag column
-                //std::cout << "temp" << '\t' << temp << '\n';
+                pos = line.rfind('\t', pos2 - 1); // go back on tabs to find the locus tag column
+                pos = line.rfind('\t', pos - 1);
+                pos = line.rfind('\t', pos - 1);
+                pos2 = line.rfind('\t', pos - 1);
+                temp = line.substr(pos2 + 1, pos - pos2 - 1); // this is the locus tag column
                 tempLocusTag.push_back(temp);
-            }else{
-                tempLocusTag.push_back("");
-                tempOldLocusTag.push_back("");
+                pos = line.rfind('\t', pos2 - 1); // go back on tabs to find the product accession column
+                pos2 = line.rfind('\t', pos - 1);
+                temp = line.substr(pos2 + 1, pos - pos2 - 1); // this is gene name column
+                tempGeneName.push_back(temp);
+                std::streampos linePos = featureTable.tellg(); // store location in file
+                getline(featureTable, line);
+                if(line.substr(0, 3) != "CDS"){
+                    // go back to previous line
+                    tempProdAcc.push_back("");
+                    featureTable.seekg(linePos);
+                }else{
+                    pos = 0;
+                    int tabCount{0};
+                    while(tabCount != 10){ // find prod accession column
+                        pos = line.find('\t', pos + 1);
+                        ++tabCount;
+                    }
+                    pos2 = line.find('\t', pos + 1);
+                    temp = line.substr(pos + 1, pos2 - pos - 1);
+                    while(tabCount != 16){ // find locus tag column
+                        pos = line.find('\t', pos + 1);
+                        ++tabCount;
+                    }
+                    pos2 = line.find('\t', pos + 1);
+                    std::string newLocusTag = line.substr(pos + 1, pos2 - pos - 1); 
+                    if(newLocusTag == tempLocusTag.back()){ // make sure the locus tag matches between the 2 lines
+                        tempProdAcc.push_back(temp); // store prod_acc
+                    }else{
+                        tempProdAcc.push_back("");
+                    }
+                }
             }
         }
         locusTag.push_back(tempLocusTag);
         oldLocusTag.push_back(tempOldLocusTag);
+        prodAcc.push_back(tempProdAcc);
+        geneName.push_back(tempGeneName);
         featureTable.close();
     }
 
@@ -289,7 +322,10 @@ int main(int argc, char* argv[]){
                                     temp = line2.substr(posGeneId, posGeneId2 - posGeneId);
                                     for(int j = 0; j < oldLocusTag[genomeCount].size(); ++j){
                                         if(oldLocusTag[genomeCount][j] == temp){
-                                            temp = locusTag[genomeCount][j]; // replace old locus tag with locus tag
+                                            temp = prodAcc[genomeCount][j]; // replace old locus tag with locus tag
+                                            break;
+                                        }else if(geneName[genomeCount][j] == temp){
+                                            temp = prodAcc[genomeCount][j]; // replace gene name with locus tag
                                             break;
                                         }
                                     }
@@ -382,9 +418,13 @@ int main(int argc, char* argv[]){
     
     std::ofstream output;
     output.open(outputFileName); // Printing format to match OrthoFinder output
-    output << "HOG" << '\t' << "OG" << '\t' << "Gene Tree" << '\t' << "Parent Clade" << '\t';
+    output << "HOG" << '\t' << "OG" << '\t' << "Gene Tree Parent Clade" << '\t';
     for(int i = 0; i < fullInputNames.size(); ++i){
-        output << fullInputNames[i] << '\t';
+        if(i != fullInputNames.size() -1){
+            output << fullInputNames[i] << '\t';
+        }else{
+            output << fullInputNames[i]; // no trailing tab at end line
+        }
     }
     output << '\n';
     for(int i = 0; i < orthoGroup.size(); ++i){
