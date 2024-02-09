@@ -144,6 +144,11 @@ int main(int argc, char* argv[]){
                 size_t pos = line.find("old_locus_tag") + 14;
                 size_t pos2 = line.find('\t', pos);
                 std::string temp = line.substr(pos, pos2 - pos);
+                if(temp.find(',') != std::string::npos){ // checks if multiple old locus tag listed, keeps only final one
+                    pos = temp.find(',') + 1;
+                    pos2 = temp.find('\t', pos);
+                    temp = temp.substr(pos, pos2 - pos);
+                }
                 tempOldLocusTag.push_back(temp);
                 pos = line.rfind('\t', pos2 - 1); // go back on tabs to find the locus tag column
                 pos = line.rfind('\t', pos - 1);
@@ -361,7 +366,7 @@ int main(int argc, char* argv[]){
                 if(line.find("<paralogGroup>") != std::string::npos || line.find("</paralogGroup>") != std::string::npos){
                     //std::cout << "PARA" << '\n';
                     continue;
-                }else if(line.find("<orthologGroup") != std::string::npos){
+                }else if(line.find("<orthologGroup>") != std::string::npos){
                     //std::cout << "ORTHO" << '\n';
                     continue;
                 }else if(line.find("</orthologGroup>") != std::string::npos){
@@ -369,7 +374,34 @@ int main(int argc, char* argv[]){
                         for(int j = 0; j < temp_vector[i].size(); ++j){
                             if(temp_vector[i][j] != ""){
                                 //std::cout << "PUSHING ORTHOGROUP at pos" << '\t' << orthoGroup.size() + 1 << '\n';
-                                orthoGroup.push_back(temp_vector);
+                                bool twoGenes{0};
+                                for(int k = i; k < temp_vector.size(); ++k){
+                                    int l{0};
+                                    if(j == temp_vector[k].size() - 1 && k == i){
+                                        l = temp_vector[k].size();
+                                    }else if(k == i){
+                                        l = j + 1;
+                                    }
+                                    while(l < temp_vector[k].size()){
+                                    //for(; l < temp_vector[k].size(); ++l){
+                                        if(temp_vector[k][l] != ""){
+                                            twoGenes = 1;
+                                            // can add goto statement to break out of while and for loop for speed
+                                        }
+                                        //std::cout << k << '\t' << l << '\t' << temp_vector[k][l] << '\n';
+                                        ++l;
+                                    }
+                                }
+                                if(twoGenes == 1){
+                                    orthoGroup.push_back(temp_vector);
+                                }else{
+                                    //print temp vector
+                                    //for(int k = 0; k < temp_vector.size(); ++k){
+                                    //    for(int l = 0; l < temp_vector[k].size(); ++l){
+                                    //        std::cout << k << '\t' << l << '\t' << temp_vector[k][l] << '\n';
+                                    //    }
+                                    //}
+                                }
                                 temp_vector.clear();
                                 temp_vector.resize(fullInputNames.size()); // have to resize as clear() does change the size back to 0
                                 goto needbreak;
@@ -382,6 +414,7 @@ int main(int argc, char* argv[]){
                     size_t pos2 = line.find('"', pos);
                     std::string temp = line.substr(pos, pos2 - pos);
                     int indx = std::stoi(temp);
+                    //std::cout << "indx" << '\t' << indx << '\n';
                     if(gene_id[indx - 1] == -1){ // if gene_id is -1, then it is missing data and we need to skip it
                         continue;
                     }
