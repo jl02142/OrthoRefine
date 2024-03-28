@@ -34,18 +34,26 @@ Command to run OrthoRefine only\
 ./orthorefine.exe --input input.txt --OF_file N0.tsv --window_size window_size_number --synteny_ratio synteny_ratio_number
 `
 
-The default outfile is called "outfile_ws_sr_pa_ra" where ws is the value of window size, sr is the synteny ratio, pa is print_all (default 0), and ra is run_all_orthofinder (default 0); these four suffixes are always appended. OrthoRefine's outfile has been formatted to match OrthoFinder's, except the second column will print the SOG number and the third will print the gene name from the feature table of the first genome in the SOG (genomes are ordered by their apperance in the user created input file). 
+The default outfile is called "outfile_ws_sr_pa_ra" where ws is the value of window size (default 8), sr is the synteny ratio (default 0.5), pa is print_all (default 0), and ra is run_all_orthofinder (default 0); these four suffixes are always appended and the default output file name is "outfile_8_0.5_0_0". OrthoRefine's outfile has been formatted to match OrthoFinder's, except the second column will print the SOG number and the third will print the gene name from the feature table of the first genome in the SOG (genomes are ordered by their apperance in the user created input file). 
 
 ## OrthoRefine's method summary
-OrthoRefine automates using synteny (conserved gene order) information to refine prior homolog (orthologous group) identification. The analysis begins by constructing a window of user specified size centered at each gene of the HOG. Excluding this gene from the HOG (located at the center of the window), OrthoRefine evaluates the synteny by counting matching pairs of genes inside the window; matching pairs consist of genes assigned to the same group by a prior program (e.g. HOG group in the OrthoFinder output). We note that genes only need to be within the window and are not required to be in the same order, and genes that do not have a homolog in the other genome are not included in the window (the window would be extended by one per missing homolog for that pairwise comparison). The synteny ratio is calculated by taking the number of matching pairs and dividing it by the window size. If the ratio is greater than a cutoff (default 0.5), the genes at the center of the window are considered syntenic. 
+OrthoRefine is a tool designed to automate the refinement of hierarchical orthogroups (HOGs) identification using synteny, conservation of gene order. The analysis proceeds through the following steps:
+
+* Construction of Gene Windows: OrthoRefine begins by constructing a window of user-specified size centered at each gene of the HOG. This window excludes the gene located at the center and evaluates synteny by counting matching pairs of genes within the window.
+
+* Evaluation of Synteny: Matching pairs consist of genes assigned to the same group by a prior program (e.g., HOG group in the OrthoFinder output). It's important to note that genes only need to be within the window and are not required to be in the same order. Additionally, genes without a homolog in the other genome are not included in the window, and the window is extended by one per missing homolog for that pairwise comparison.
+
+* Calculation of Synteny Ratio: The synteny ratio is calculated by dividing the number of matching pairs by the window size. If the ratio exceeds a user-defined cutoff (default 0.5), the genes at the center of the window are considered syntenic.
+
+OrthoRefine provides a refined assessment of homologs based on synteny information, which can aid in improving the accuracy of orthologous group assignments. Users can adjust parameters such as the window size and synteny ratio cutoff to customize the analysis according to their specific requirements.
 
 <figure>
     <img src="https://github.com/jl02142/OrthoRefine/assets/23033795/8f711260-18b7-4681-a5e4-52021f741206" width="1000" height="400">
-    <figcaption>The window around three genes assigned to HOG19 by OrthoFinder demonstrates how OrthoRefine determines which of the E. coli genes is an ortholog of E. fergusonii’s HVX45_RS11505. The HOG19 genes are shown with yellow fill, other genes assigned to the same HOG are shown in matching colors, and genes that have orthologs in other genomes outside the displayed window are shown in white. The first number below each circle denotes the HOG assigned by OrthoFinder, while the second entry shows the locus tag.</figcaption>
+    <figcaption>The window around three genes assigned to HOG19 by OrthoFinder demonstrates how OrthoRefine determines which of the <i>E. coli</i> genes is an ortholog of <i>E. fergusonii’s</i> HVX45_RS11505. The HOG19 genes are shown with yellow fill, other genes assigned to the same HOG are shown in matching colors, and genes that have orthologs in other genomes outside the displayed window are shown in white. The first number below each circle denotes the HOG assigned by OrthoFinder, while the second entry shows the locus tag.</figcaption>
 </figure>
 
 \
-For additional information and examples, see OrthoRefine's paper. 
+OrthoRefine's manuscript is currently under peer review. 
 
 [Ludwig, J and Mrázek, J. OrthoRefine: automated enhancement of prior ortholog identification via synteny. 2023]()
 
@@ -70,7 +78,7 @@ g++ -std=c++17 -pthread -O3 orthorefine.cpp -o orthorefine.exe
 `
 
 ## Required input
-As input, OrthoRefine requires OrthoFinder's output ("N0.tsv"), NCBI RefSeq feature table file per genome, and a user created text file where each line contains the GCF accession per genome; we reccomend having all inputs and the executable in a single directory to reduce errors in path. If a feature table file is not available for a genome, the data may be submitted to NCBI for annotation or the user may generate the annotation using the same pipeline as NCBI, [pgap](https://github.com/ncbi/pgap). OrthoFinder's output (N0.tsv) is in Window's format (\r\n) - to do the necesarry conversion to Linux (\n), use the Linux command dos2unix; the master script already handles this.
+As input, OrthoRefine requires OrthoFinder's output ("N0.tsv") which contains orthogroup information, NCBI RefSeq feature table file per genome which provides the genome annotation information, and a user created text file where each line contains the GCF accession per genome. We reccomend having all inputs and the executable in a single directory to reduce errors in path. If a feature table file is not available for a genome, the data may be submitted to NCBI for annotation or the user may generate the annotation using the same pipeline as NCBI, [pgap](https://github.com/ncbi/pgap). OrthoFinder's output (N0.tsv) is in Window's format (\r\n) - to do the necesarry conversion to Linux (\n), use the Linux command dos2unix; the master script already handles this conversion.
 
 `
 dos2unix N0.tsv
@@ -84,7 +92,7 @@ Example user created input file, "input.txt". Each line must contain one GCF acc
 >GCF_902709585.1
 
 ### Eukaryote data
-While we found OrthoRefine to function on eukaryote data (<i>Saccharomyces</i>), it will not function with all eukaryote datasets. OrthoRefine currently requires the "locus_tag" column to contain data in the RefSeq feature table file. Some eukaryote data at RefSeq is missing the "locus_tag" information. Additonally, OrthoRefine currently does not handle the repeated gene identifier from isoforms in the annotation. A planned future update would resolve these issues. 
+While we found OrthoRefine to function on eukaryote data (<i>Saccharomyces</i>), it will not function with all eukaryote datasets. OrthoRefine currently requires the "locus_tag" column to contain data in the RefSeq feature table file. Some eukaryote data at RefSeq is missing the "locus_tag" information. Additonally, OrthoRefine currently does not handle the repeated gene identifier from isoforms in the annotation and the python script [ft_fa_isoform_remove.py](https://github.com/jl02142/OrthoRefine/blob/main/ft_fa_isoform_remove.py) should be used to remove isoforms from the fasta and feature table files before the analysis. 
 
 A modified input file may be submitted to tell OrthoRefine if a genome is linear or circular (second column c or l) and if it is archaea, bacteria, or eukaryote (third column a, b, or e). Circular genomes have their ends compared for syntenty (the window can "overflow" from one end to the other) while linear genes do not; by default, OrthoRefine analyzes all genomes as circular. Genomes denoted as archaea or bacteria will have operons detected by the gene gap method [(Yan and Moult. 2006.)](https://pubmed.ncbi.nlm.nih.gov/16755590/); by default, OrthoRefine does not consider operons. An operon may only count once per window for a match regardless of how many genes in the operon would have matched, the window is extended to account for this. 
 
@@ -131,7 +139,7 @@ OrthoRefine has several runtime options, some which standard end-users may find 
 
 ### Interpreting the ouput
 
-OrthoRefine's output has been formatted to closely match OrthoFidner's. A change has been made to the second collumn where the orthogroup has been replaced with the SOG, and to the third collumn where the node has been replaced with the gene name from the feature table file of the first genome listed in the input file. The final line of the output contains the number of HOGs refined and the total number of refinements, which can be larger as a single HOG can be refined into mulitple SOGs. 
+OrthoRefine's output has been formatted to closely match OrthoFidner's. A change has been made to the second collumn where the orthogroup has been replaced with the SOG, and to the third collumn where the node has been replaced with the gene name from the feature table file of the first genome listed in the input file. The final line of the output contains the number of HOGs refined and the total number of refinements, the later of which can be larger as a single HOG can be refined into mulitple SOGs. 
 
 An example of OrthoRefine's output is below. HOG 5 is split into two SOGs, 5.0 which contains b1552 and HVX45_RS19450 and 5.1 which contains b0990, JRC41_RS13205, and GV529_RS02480.
 ```
