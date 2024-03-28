@@ -92,9 +92,19 @@ Example user created input file, "input.txt". Each line must contain one GCF acc
 >GCF_902709585.1
 
 ### Eukaryote data
-While we found OrthoRefine to function on eukaryote data (<i>Saccharomyces</i>), it will not function with all eukaryote datasets. OrthoRefine currently requires the "locus_tag" column to contain data in the RefSeq feature table file. Some eukaryote data at RefSeq is missing the "locus_tag" information. Additonally, OrthoRefine currently does not handle the repeated gene identifier from isoforms in the annotation and the python script [ft_fa_isoform_remove.py](https://github.com/jl02142/OrthoRefine/blob/main/ft_fa_isoform_remove.py) should be used to remove isoforms from the fasta and feature table files before the analysis. 
+While OrthoRefine has been successfully tested on eukaryotic datasets such as <i>Saccharomyces</i>, it may encounter limitations with certain eukaryote datasets. Currently, OrthoRefine requires the 'locus_tag' column to contain data in the RefSeq feature table file. However, some eukaryotic data available at RefSeq may lack 'locus_tag' information, which can prevent OrthoRefine from functioning properly.
 
-A modified input file may be submitted to tell OrthoRefine if a genome is linear or circular (second column c or l) and if it is archaea, bacteria, or eukaryote (third column a, b, or e). Circular genomes have their ends compared for syntenty (the window can "overflow" from one end to the other) while linear genes do not; by default, OrthoRefine analyzes all genomes as circular. Genomes denoted as archaea or bacteria will have operons detected by the gene gap method [(Yan and Moult. 2006.)](https://pubmed.ncbi.nlm.nih.gov/16755590/); by default, OrthoRefine does not consider operons. An operon may only count once per window for a match regardless of how many genes in the operon would have matched, the window is extended to account for this. 
+Additionally, OrthoRefine does not handle repeated gene identifiers from isoforms in the annotation files. To address this issue, users should utilize the provided Python script [ft_fa_isoform_remove.py](https://github.com/jl02142/OrthoRefine/blob/main/ft_fa_isoform_remove.py) to remove isoforms from both the fasta and feature table files before initiating the analysis.
+
+#### Circular vs linear genomes and operon detection
+
+A modified input file format may be submitted to provide additional information to OrthoRefine, allowing users to specify if a genome is linear or circular and if it belongs to the archaea, bacteria, or eukaryote domain. This information is provided in the second and third columns of the input file:
+
+* The second column denotes the genome's topology, with 'c' indicating a circular genome and 'l' indicating a linear genome. Circular genomes have their ends compared for synteny, meaning that the window can 'overflow' from one end to the other. By default, OrthoRefine analyzes all genomes as circular unless otherwise specified.
+
+* The third column specifies the domain of the genome, with 'a' representing archaea, 'b' representing bacteria, and 'e' representing eukaryote.
+
+Genomes denoted as archaea or bacteria will have operons detected using the gene gap method described by [Yan and Moult (2006)](https://pubmed.ncbi.nlm.nih.gov/16755590/). By default, OrthoRefine does not consider operons. Operons are counted once per window for a match, regardless of the number of genes in the operon that would have matched. The window is extended to account for this.
 
 >GCF_000005845.2 c b\
 >GCF_013892435.1 c b\
@@ -118,9 +128,11 @@ Indepedently
 `
 
 ### Runtime parameters (window size & synteny ratio)
-To determine default parameters, we evaluated different combinations of window size and synteny ratio using average max number of orthologous genes (AMNOG) represented in a single SOG (syntenous ortholog group). We reccomend using a smaller window size (default 8) and higher synteny ratio (default 0.5), espically for closely related genomes; a larger window or lower synteny ratio may be better suited as the evolutionary distance of the genomes increases (e.g., window size 30 and synteny ratio 0.2). Users may view the AMNOG for their dataset on predetermined combinations of window size and synteny ratio by setting the runtime option --run_combo to 1 (Calculating the AMNOG is a parallelized process that is currently memory intensive. OrthoRefine will return the killed error if the memory of the system is exceeded). 
+To establish default parameters, we conducted an evaluation of various combinations of window size and synteny ratio, assessing the Average Max Number of Orthologous Genes (AMNOG) represented in a single Syntenous Ortholog Group (SOG). Based on our analysis, we recommend defaulting to a smaller window size (set at 8) and a higher synteny ratio (set at 0.5), particularly for closely related genomes. However, as the evolutionary distance between genomes increases, users may find that a larger window size or a lower synteny ratio is more appropriate (e.g., a window size of 30 and a synteny ratio of 0.2).
 
-Additional runtime parameters are --input, the user created input file, and --OF_file, the output from OrthoFinder. 
+Users have the option to examine the AMNOG for their dataset across predetermined combinations of window size and synteny ratio by enabling the runtime option --run_combo to 1. It's important to note that calculating the AMNOG is a parallelized process that currently requires significant memory resources. If the system's memory capacity is exceeded during this calculation, OrthoRefine will terminate with a 'killed' error.
+
+In addition to adjusting the window size and synteny ratio parameters, users must specify the input file (--input) containing user-created datafile of GCF accession per genome and the output file from OrthoFinder (--OF_file) to initiate the analysis.
 
 ### Runtime options
 OrthoRefine has several runtime options, some which standard end-users may find useful and others intended for advanced end-users. 
@@ -130,7 +142,7 @@ OrthoRefine has several runtime options, some which standard end-users may find 
 --run_all_orthofinder Controls if OrthoRefine should only evaluate synteny on groups with paralogs (0, default) or on all groups (1).\
 --outfile sets the prefix of the outfile. The default outfile is called "outfile_ws_sr_pa_ra" where ws is the value of window size, sr is the synteny ratio, pa is print_all (default 0), and ra is run_all_orthofinder (default 0); these four suffixes are always appended. \
 --run_single_HOG Controls if OrthoRefine should only evaluate a single group for synteny, specified by the value. \
---prod_acc Controls if OrthoRefine should print the product accession (0) or locus tag (1, default).\
+--prod_acc Controls if OrthoRefine should print the product accession (0) or locus tag (1, default). We prefer the locus tag over product accession as the locus tag is non-redundant while the product accession may be redundant.\
 --path File path to location if the input files are located in a different location than the executable.
 
 #### Advanced options
@@ -139,7 +151,9 @@ OrthoRefine has several runtime options, some which standard end-users may find 
 
 ### Interpreting the ouput
 
-OrthoRefine's output has been formatted to closely match OrthoFidner's. A change has been made to the second collumn where the orthogroup has been replaced with the SOG, and to the third collumn where the node has been replaced with the gene name from the feature table file of the first genome listed in the input file. The final line of the output contains the number of HOGs refined and the total number of refinements, the later of which can be larger as a single HOG can be refined into mulitple SOGs. 
+OrthoRefine's output closely resembles that of OrthoFinder, with some modifications. Notably, the second column now displays the Syntenous Ortholog Group (SOG) instead of the orthogroup, while the third column contains the gene name from the feature table file of the first genome listed in the input file, replacing the node identifier.
+
+The final line of the output provides summary statistics, including the number of Homologous Orthologous Groups (HOGs) refined and the total number of refinements. It's important to note that the total number of refinements may exceed the number of refined HOGs, as a single HOG can be refined into multiple SOGs.
 
 An example of OrthoRefine's output is below. HOG 5 is split into two SOGs, 5.0 which contains b1552 and HVX45_RS19450 and 5.1 which contains b0990, JRC41_RS13205, and GV529_RS02480.
 ```
