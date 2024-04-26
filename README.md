@@ -53,9 +53,9 @@ OrthoRefine provides a refined assessment of homologs based on synteny informati
 </figure>
 
 \
-OrthoRefine's manuscript is currently under peer review. 
+OrthoRefine's manuscript is available at BMC Bioinformatics. 
 
-[Ludwig, J and Mrázek, J. OrthoRefine: automated enhancement of prior ortholog identification via synteny. 2023]()
+[Ludwig, J and Mrázek, J. OrthoRefine: automated enhancement of prior ortholog identification via synteny.](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-024-05786-7)
 
 
 ## Install
