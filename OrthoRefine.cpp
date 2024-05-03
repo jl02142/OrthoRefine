@@ -1,5 +1,5 @@
 /*
-    By J. Ludwig, Copyright 2023. https://github.com/jl02142/OrthoRefine
+    By J. Ludwig, Copyright 2024. https://github.com/jl02142/OrthoRefine
 */
 
 /*
@@ -24,6 +24,7 @@
 // The information from the feature table file is stored in the structure below
 struct strct_feature_tables_info{           
     int size_strct;                         // size of structure created by new statement
+    int file_type;                          // 0 = refseq, 1 = gff
     char chromosome = 'c';                  // can either be c (circular) or l (linear). Circular can overflow the ends when comparing gene's HOGs, linear cannot
     char domain = 'e';                      // b (bacteria), a (archaea) or e (eukaryote). bacteria and archaea have operons detected using the gene gap method if user turns option on
     std::vector<int> operon;                // Operon number as determined by gene gap method
@@ -80,7 +81,7 @@ int main(int argc, char* argv[]){
     int ft_gene_together{1};                // How should genes in a HOG be treated if they are next to eachother in the FT? 0 = print together if best; 1 = skip 
     int print_all_orthofinder{0};           // Controls printing all orthologs for benchmark file
     int benchmark{0};                       // Should the benchmark file be created?
-    bool run_combo{0};                     // changed to 1 when user provides window size or synteny ratio. If 0, run on programmed combinations of ws and sr
+    bool run_combo{0};                      // changed to 1 when user provides window size or synteny ratio. If 0, run on programmed combinations of ws and sr
     int run_single_HOG{-1};                 // Run only on one HOG to save time
     int run_all_orthofinder{0};             // Run on all OrthoFinder results instead of those with at least one paralog
     int paralogs_print{0};                  // If paralogs should be considered for longest SOG printing. 0 = no, 1 = yes
@@ -343,10 +344,9 @@ int main(int argc, char* argv[]){
             int final_refine{0};      // total number of refinements, HOGs may be counted twice if a HOG can be split mutiple times.
             int total_hog_refine{0};  // total number of HOGs refined. HOGs will only be counted once regardless of how many splits. 
             bool flag_hog_counted{0}; // keep track is a hog is already counted for total_hog_refine
-
             int hog_count{0};
             for(int i = 0; i < HOG_line; ++i){                          // loop through each HOG
-                //if(i != 2){
+                //if(i != 2){                                           // used for only running a single HOG during testing
                 //    continue;
                 //}
                 int within_longest_chain_count{0};
@@ -355,12 +355,9 @@ int main(int argc, char* argv[]){
                     ++hog_count;
                 }
                 std::vector<int> remember_j;
-
-                
                 int sog_count{0};
                 for(int j = 0; j < HOG_match[h][i].size(); ++j){        // loop through each SOG
                     int chain_tab_count{0};
-
                     for(int k = 1; k < HOG_match[h][i][j].size(); ++k){ // loop through each member of the SOG
                         if(HOG_match[h][i][j][k] == '\t' && HOG_match[h][i][j][k - 1] != '\t'){              // count number of tabs (genomes) to find longest SOG
                             ++chain_tab_count;
@@ -454,7 +451,7 @@ int main(int argc, char* argv[]){
                         record_ws_sr_indx[i][k][1] = sr_indx;
                     }
                 }
-                flag_hog_counted = 0;                //std::cout << "within_longest" << '\t' << within_longest_chain_count << '\n';
+                flag_hog_counted = 0;
                 sog_per_combo[h] += within_longest_chain_count; // for calculating average below
             }
             outfile << "Number of HOGs refined:" << '\t' << total_hog_refine << '\t' << "for a total refinement of" << '\t' << final_refine << '\n';
@@ -657,7 +654,6 @@ namespace File_handler{
     }
 }
 
-
 namespace File_read{
     // read the info from each feature table
     std::vector<strct_feature_tables_info> * read_ft(std::string snf, std::string path, std::string OrthFnd_file, int diag, int ortho_finder_order){ // snf = sample name file
@@ -785,7 +781,7 @@ namespace File_read{
             for(int i = 0; i < GCF_length; ++i){
                 std::cout << GCF_prefix[i] << '\n';
             }
-            // Uncomment below loop to verify order GCF prefix
+            // loop to verify order GCF prefix
             for(std::string i : ordered_GCF_input){
                 std::cout << i << '\t';
             }
@@ -821,28 +817,37 @@ namespace File_read{
                         std::string compare = file_path.substr(path_length);  // Remove full path; keep just file name
                         std::size_t found = compare.find(temp_string);  // Compare file name in dir to file name provided by user
                         if(found != std::string::npos){
+                            int file_type{-1}; // 0 = feature_table.txt, 1 = genomic.gff.txt
                             if(compare.find("ft_locus_tag_replaced_with_uniprot") != std::string::npos){  // used when benchmarking
                                 found = compare.find("ft_locus_tag_replaced_with_uniprot");
                                 std::cout << "Warning: Using modified feature table file."  << '\t' <<  compare << '\n';
-                            }else{
+                            }else if(compare.find("feature_table.txt") != std::string::npos){
                                 found = compare.find("feature_table.txt");  // Check if file name in dir also has "feature_table" in name
+                                file_type = 0;
+                            }else{
+                                found = compare.find("genomic.gff");
+                                file_type = 1;
                             }
                             if(found != std::string::npos){
                                 for(int i = 0; i < GCF_length; ++i){
-                                    
                                     std::string GCF_name_temp = ordered_GCF_input[i]; //GCF_name_temp
                                     for(int j = 0; j < GCF_length; ++j){
                                         std::string ordered_GCF_name_temp = GCF_prefix[j]; //ordered_GCF_name_temp
                                         std::size_t pos = GCF_name_temp.find(ordered_GCF_name_temp);
                                         if(pos != std::string::npos){
                                             if(compare.find(ordered_GCF_name_temp) == 0){
-                                                std::cout << compare << '\n';
                                                 ft_file_names[i] = compare;
                                                 remember_i = i;
                                                 file_match = 1;
+                                                if(file_type == 0){
+                                                    (*feature_tables_info)[i].file_type = 0; // refseq feature table file
+                                                }else if(file_type == 1){
+                                                    (*feature_tables_info)[i].file_type = 1; // gff
+                                                }else{
+                                                    std::cout << "Error: file type not found. Required feature table file or GFF." << '\n';
+                                                    std::exit(EXIT_FAILURE);
+                                                }
                                                 goto break_auto;
-                                            }else{
-
                                             }
                                         }
                                     }                            
@@ -878,33 +883,68 @@ namespace File_read{
 
         int ft_line_count{0};
         temp_tab_count = 0;
-        bool h_flag{0}; // header line flag
-        bool c_flag{0}; // line starts with "CDS"
         for(int i = 0; i < ft_file_names.size(); ++i){
-
+            bool h_flag{0}; // header line flag
+            bool c_flag{0}; // line starts with "CDS"
             ft_line_count = 0;
             (*feature_tables_info)[i].name = ft_file_names[i];
             ss.clear();
             ss << File_handler::load_ss(ft_file_names[i]);
-            while(ss >> std::noskipws >> c){  // Count how many lines in feature table are "CDS" but also not "psuedogene".
-                if(h_flag == 0){
-                    if(c == '\n'){
-                        h_flag = 1; // Header line
+            if((*feature_tables_info)[i].file_type == 0){ // refseq feature table file
+                while(ss >> std::noskipws >> c){  // Count how many lines in feature table are "CDS" but also not "psuedogene".
+                    if(h_flag == 0){
+                        if(c == '\n'){
+                            h_flag = 1; // Header line
+                        }
+                    }else if(h_flag == 1){
+                        if(c == '\t'){
+                            ++temp_tab_count;
+                        }else if(temp_tab_count == 0 && c == 'C'){ // Only count lines start with "CDS"
+                            c_flag = 1;
+                            ++ft_line_count;
+                        }else if(c_flag == 1 && temp_tab_count == 1 && c == 'u'){
+                            --ft_line_count; // Don't want psuedo genes, match to 'u' in 'without'
+                        }else if(c == '\n'){
+                            c_flag = 0;
+                            temp_tab_count = 0;
+                        }
                     }
-                }else if(h_flag == 1){
-                    if(c == '\t'){
-                        ++temp_tab_count;
-                    }else if(temp_tab_count == 0 && c == 'C'){ // Only count lines start with "CDS"
-                        c_flag = 1;
-                        ++ft_line_count;
-                    }else if(c_flag == 1 && temp_tab_count == 1 && c == 'u'){
-                        --ft_line_count; // Don't want psuedo genes, match to 'u' in 'without'
-                    }else if(c == '\n'){
-                        c_flag = 0;
-                        temp_tab_count = 0;
+                }
+            }else if((*feature_tables_info)[i].file_type == 1){ // gff file
+                temp_string = "";
+                bool n_flag{0}; // new line flag
+                while(ss >> std::noskipws >> c){
+                    if(c == '#' && n_flag == 1){
+                        n_flag = 0;
+                        h_flag = 0;
+                    }else if(c != '#' && n_flag == 1){
+                        n_flag = 0;
+                        h_flag = 1;
+                    }else if(h_flag == 1){
+                        if(c == '\t'){
+                            ++temp_tab_count;
+                        }else if(temp_tab_count == 2 && c == 'C'){ // Only count lines start with "CDS"
+                            c_flag = 1;
+                            ++ft_line_count;
+                        }else if(c_flag == 1 && temp_tab_count == 8 && c != '\n'){
+                            temp_string += c;
+                        }else if(c == '\n'){
+                            // search temp string to see if it contains psuedo=true
+                            if(temp_string.find("pseudo=true") != std::string::npos){
+                                --ft_line_count; // Don't want psuedo genes
+                            }
+                            temp_string = "";
+                            c_flag = 0;
+                            temp_tab_count = 0;
+                        }
+                    }
+                    if(c == '\n'){
+                        n_flag = 1;
                     }
                 }
             }
+
+            //std::cout << (*feature_tables_info)[i].name << '\t' << ft_line_count << '\n';
 
             (*feature_tables_info)[i].size_strct = ft_file_names.size();
             (*feature_tables_info)[i].scaffold.resize(ft_line_count);
@@ -940,71 +980,175 @@ namespace File_read{
             ss.clear();
             ss << File_handler::load_ss(ft_file_names[i]);
             int sspos;  // To store location in file where line starts. stringstream position     
-            while(ss >> std::noskipws >> c){
-                
-                if(h_flag == 0){
-                    if(c == '\n'){
-                        h_flag = 1;
-                    }
-                }else if(h_flag == 1){
-                    if(c == '\t'){
-                        ++temp_tab_count;
-                    }else if(temp_tab_count == 0 && c == 'C'){  // Only lines that start with "CDS"
-                        sspos = ss.tellg();
-                        c_flag = 1;
-                    }else if(c_flag == 1 && temp_tab_count == 1 && c == 'u'){  // Don't want psuedogenes, look for "u" in "without"
-                        c_flag = 0;
-                    }
+            if((*feature_tables_info)[i].file_type == 0){ // refseq feature table file
+                while(ss >> std::noskipws >> c){
 
-                    if(c_flag == 1 && temp_tab_count == 2){ // Need any tab # after 1 to allow skipping of psuedogenes
-                        temp_tab_count = 0;
-                        ss.seekg(sspos - 1);  // Return to start of line
-                        bool tab_6_flag{0};
-                        std::string scaffold_string = "";
-                        while(ss >> std::noskipws >> c){
-                            if(c == '\t'){
-                                ++temp_tab_count;
-                                continue;
-                            }
-                            if(temp_tab_count == 6){ // record scaffold name
-                                scaffold_string += c;
-                                tab_6_flag = 1;
-                            }else if(temp_tab_count == 7){  // Start pos
-                                (*feature_tables_info)[i].start_pos[ft_line_count] += c;
-                                if(tab_6_flag == 1){
-                                    (*feature_tables_info)[i].scaffold[ft_line_count] = scaffold_string;
-                                    scaffold_string = "";
-                                    tab_6_flag = 0;
+                    if(h_flag == 0){
+                        if(c == '\n'){
+                            h_flag = 1;
+                        }
+                    }else if(h_flag == 1){
+                        if(c == '\t'){
+                            ++temp_tab_count;
+                        }else if(temp_tab_count == 0 && c == 'C'){  // Only lines that start with "CDS"
+                            sspos = ss.tellg();
+                            c_flag = 1;
+                        }else if(c_flag == 1 && temp_tab_count == 1 && c == 'u'){  // Don't want psuedogenes, look for "u" in "without"
+                            c_flag = 0;
+                        }
+
+                        if(c_flag == 1 && temp_tab_count == 2){ // Need any tab # after 1 to allow skipping of psuedogenes
+                            temp_tab_count = 0;
+                            ss.seekg(sspos - 1);  // Return to start of line
+                            bool tab_6_flag{0};
+                            std::string scaffold_string = "";
+                            while(ss >> std::noskipws >> c){
+                                if(c == '\t'){
+                                    ++temp_tab_count;
+                                    continue;
                                 }
-                            }else if(temp_tab_count == 8){  // End pos
-                                (*feature_tables_info)[i].end_pos[ft_line_count] += c;
-                            }else if(temp_tab_count == 9){
-                                (*feature_tables_info)[i].direction[ft_line_count] = c;
-                            }else if(temp_tab_count == 10){  // Product accession
-                                (*feature_tables_info)[i].prod_acc[ft_line_count] += c;
-                            }else if(temp_tab_count == 13){  // Name 
-                                (*feature_tables_info)[i].gene_name[ft_line_count] += c;
-                            }else if(temp_tab_count == 14){  // Symbol
-                                (*feature_tables_info)[i].symbol[ft_line_count] += c;
-                            }else if(temp_tab_count == 16){ // Locus tag
-                                (*feature_tables_info)[i].locus_tag[ft_line_count] += c;
-                            }
-                            if(c == '\n'){
-                                ++ft_line_count;
-                                c_flag = 0;
-                                temp_tab_count = 0;
-                                break;
+                                if(temp_tab_count == 6){ // record scaffold name
+                                    scaffold_string += c;
+                                    tab_6_flag = 1;
+                                }else if(temp_tab_count == 7){  // Start pos
+                                    (*feature_tables_info)[i].start_pos[ft_line_count] += c;
+                                    if(tab_6_flag == 1){
+                                        (*feature_tables_info)[i].scaffold[ft_line_count] = scaffold_string;
+                                        scaffold_string = "";
+                                        tab_6_flag = 0;
+                                    }
+                                }else if(temp_tab_count == 8){  // End pos
+                                    (*feature_tables_info)[i].end_pos[ft_line_count] += c;
+                                }else if(temp_tab_count == 9){
+                                    (*feature_tables_info)[i].direction[ft_line_count] = c;
+                                }else if(temp_tab_count == 10){  // Product accession
+                                    (*feature_tables_info)[i].prod_acc[ft_line_count] += c;
+                                }else if(temp_tab_count == 13){  // Name 
+                                    (*feature_tables_info)[i].gene_name[ft_line_count] += c;
+                                }else if(temp_tab_count == 14){  // Symbol
+                                    (*feature_tables_info)[i].symbol[ft_line_count] += c;
+                                }else if(temp_tab_count == 16){ // Locus tag
+                                    (*feature_tables_info)[i].locus_tag[ft_line_count] += c;
+                                }
+                                if(c == '\n'){
+                                    ++ft_line_count;
+                                    c_flag = 0;
+                                    temp_tab_count = 0;
+                                    break;
+                                }
                             }
                         }
                     }
+                    if(c == '\n'){  // Reset after non "CDS" line
+                        temp_tab_count = 0;
+                    }
                 }
-                if(c == '\n'){  // Reset after non "CDS" line
-                    temp_tab_count = 0;
+            }else if((*feature_tables_info)[i].file_type == 1){ // gff file
+                temp_string = "";
+                bool n_flag{0}; // new line flag
+                h_flag = 0;
+                bool ss_flag{0}; // stringstream pos set flag
+                while(ss >> std::noskipws >> c){
+                    if(c == '#' && n_flag == 1){ // skip over header lines, those that start with #
+                        n_flag = 0;
+                        h_flag = 0;
+                    }else if(c != '#' && n_flag == 1){
+                        n_flag = 0;
+                        h_flag = 1;
+                    }else if(h_flag == 1){
+                        if(c == '\t'){
+                            ++temp_tab_count;
+                        }else if(temp_tab_count == 0 && ss_flag == 0){
+                            sspos = ss.tellg();
+                            ss_flag = 1;
+                        }else if(temp_tab_count == 2 && c == 'C'){  // Only lines that start with "CDS"
+                            c_flag = 1;
+                        }else if(c_flag == 1 && temp_tab_count == 8 && c != '\n'){
+                            temp_string += c;
+                        }else if(c == '\n' && c_flag == 1){
+                            // search temp string to see if it contains psuedo=true
+                            if(temp_string.find("pseudo=true") != std::string::npos){
+                                c_flag = 0;
+                                temp_tab_count = 0;
+                                temp_string = "";
+                                continue;
+                            }
+                            temp_tab_count = 0;
+                            ss.seekg(sspos - 1);  // Return to start of line
+                            ss_flag = 0;
+                            bool tab_6_flag{0}; // 6 instead of 0 as copied from above where scaffold was in tab 6
+                            std::string scaffold_string = "";
+                            while(ss >> std::noskipws >> c){
+                                if(c == '\t'){
+                                    ++temp_tab_count;
+                                    continue;
+                                }
+                                if(temp_tab_count == 0){ // record scaffold name
+                                    scaffold_string += c;
+                                    tab_6_flag = 1;
+                                }else if(temp_tab_count == 3){  // Start pos
+                                    (*feature_tables_info)[i].start_pos[ft_line_count] += c;
+                                    if(tab_6_flag == 1){
+                                        (*feature_tables_info)[i].scaffold[ft_line_count] = scaffold_string;
+                                        scaffold_string = "";
+                                        tab_6_flag = 0;
+                                    }
+                                    
+                                }else if(temp_tab_count == 4){  // End pos
+                                    (*feature_tables_info)[i].end_pos[ft_line_count] += c;
+                                }else if(temp_tab_count == 6){
+                                    (*feature_tables_info)[i].direction[ft_line_count] = c;
+                                    temp_string = "";
+                                }else if(temp_tab_count == 8 && c != '\n'){
+                                    temp_string += c;
+                                }
+                                if(c == '\n'){
+                                    // search temp string for Name= and if found, store the text following the = until the semi colon as the name
+                                    if(temp_string.find("Name=") != std::string::npos){
+                                        int pos = temp_string.find("Name=");
+                                        int pos2 = temp_string.find(";", pos);
+                                        (*feature_tables_info)[i].prod_acc[ft_line_count] = temp_string.substr(pos + 5, pos2 - pos - 5);
+                                    }
+                                    // search temp string for Genebank: and if found, store the text following the : until the semi colon as the product accession
+                                    //if(temp_string.find("Genebank:") != std::string::npos){
+                                    //    int pos = temp_string.find("Genebank:");
+                                    //    int pos2 = temp_string.find(";", pos);
+                                    //    (*feature_tables_info)[i].prod_acc[ft_line_count] = temp_string.substr(pos + 9, pos2 - pos - 9);
+                                    //}
+                                    // search temp string for product= and if found, store the text following the = until the semi colon as the name
+                                    if(temp_string.find("product=") != std::string::npos){
+                                        int pos = temp_string.find("product=");
+                                        int pos2 = temp_string.find(";", pos);
+                                        (*feature_tables_info)[i].gene_name[ft_line_count] = temp_string.substr(pos + 8, pos2 - pos - 8);
+                                    }
+                                    // search temp string for gene= and if found, store the text following the = until the semi colon as the symbol
+                                    if(temp_string.find("gene=") != std::string::npos){
+                                        int pos = temp_string.find("gene=");
+                                        int pos2 = temp_string.find(";", pos);
+                                        (*feature_tables_info)[i].symbol[ft_line_count] = temp_string.substr(pos + 5, pos2 - pos - 5);
+                                    }
+                                    // search temp string for locus_tag= and if found, store the text following the = until the semi colon as the locus tag
+                                    if(temp_string.find("locus_tag=") != std::string::npos){
+                                        int pos = temp_string.find("locus_tag=");
+                                        int pos2 = temp_string.find(";", pos);
+                                        (*feature_tables_info)[i].locus_tag[ft_line_count] = temp_string.substr(pos + 10, pos2 - pos - 10);
+                                    }
+                                    ++ft_line_count;
+                                    c_flag = 0;
+                                    temp_tab_count = 0;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if(c == '\n'){  // Reset after non "CDS" line
+                        temp_tab_count = 0;
+                        ss_flag = 0;
+                        n_flag = 1;
+                    }
                 }
             }
-            
-            //std::cout << "ft_line_count" << '\t' << ft_line_count << '\n';
-            //std::cout << "name" << '\t' << (*feature_tables_info)[i].name << '\n';
+                       
             int operon_count{0};
             if((*feature_tables_info)[i].domain == 'b' || (*feature_tables_info)[i].domain == 'a'){
                 for(int j = 0; j < ft_line_count - 1; ++j){
@@ -1558,19 +1702,75 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
                 continue;
             }
         }
+
         int sum = 0;
         if(HOG_master[0][j][0][0] != -9999){
-            sum += HOG_master[0][j][0].size();
+            //sum += HOG_master[0][j][0].size();  // changed how sum is calculated when adding in gff which can contain duplicate proteins
+            for(int k = 0; k < HOG_master[0][j][0].size(); ++k){
+                if(k == 0){
+                    ++sum;
+                    if(diag > 2){
+                        std::cout << "HOGTOP" << '\t' << j << '\t' << "FT" << '\t' << combo[0][0] << '\t' << "PROD_ACC" << '\t' << (*feature_tables_info)[combo[0][0]].prod_acc[HOG_master[0][j][0][k]] << '\n';
+                    }
+                }else{
+                    if((*feature_tables_info)[combo[0][0]].prod_acc[HOG_master[0][j][0][k]] == (*feature_tables_info)[combo[0][0]].prod_acc[HOG_master[0][j][0][k - 1]]){
+                        continue;
+                    }else{
+                        ++sum;
+                        if(diag > 2){
+                            std::cout << "HOGTOP" << '\t' << j << '\t' << "FT" << '\t' << combo[0][0] << '\t' << "PROD_ACC" << '\t' << (*feature_tables_info)[combo[0][0]].prod_acc[HOG_master[0][j][0][k]] << '\n';
+                        }
+                    }
+                }
+            }
         }
         if(HOG_master[0][j][1][0] != -9999){
-            sum += HOG_master[0][j][1].size();
-        }
-        for(int i = 0; i < samp_cnt - 2; ++i){
-            if(HOG_master[combo[i][1]][j][1][0] != -9999){
-                sum += HOG_master[combo[i][1]][j][1].size();
+            //sum += HOG_master[0][j][1].size();
+            for(int k = 0; k < HOG_master[0][j][1].size(); ++k){
+                if(k == 0){
+                    ++sum;
+                    if(diag > 2){
+                        std::cout << "HOGMID" << '\t' << j << '\t' << "FT" << '\t' << combo[0][1] << '\t' << "PROD_ACC" << '\t' << (*feature_tables_info)[combo[0][1]].prod_acc[HOG_master[0][j][1][k]] << '\n';
+                    }
+                }else{
+                    if((*feature_tables_info)[combo[0][1]].prod_acc[HOG_master[0][j][1][k]] == (*feature_tables_info)[combo[0][1]].prod_acc[HOG_master[0][j][1][k - 1]]){
+                        continue;
+                    }else{
+                        ++sum;
+                        if(diag > 2){
+                            std::cout << "HOGMID" << '\t' << j << '\t' << "FT" << '\t' << combo[0][1] << '\t' << "PROD_ACC" << '\t' << (*feature_tables_info)[combo[0][1]].prod_acc[HOG_master[0][j][1][k]] << '\n';
+                        }
+                    }
+                }
             }
-           
         }
+
+        if(samp_cnt > 2){
+            for(int i = 2; i < samp_cnt; ++i){ 
+                if(HOG_master[combo[i][1]][j][1][0] != -9999){
+                    //sum += HOG_master[combo[i][1]][j][1].size();
+                    for(int k = 0; k < HOG_master[combo[i][1]][j][1].size(); ++k){
+                        if(k == 0){
+                            ++sum;
+                            if(diag > 2){
+                                std::cout << "HOGBOT" << '\t' << i << '\t' << j << '\t' << "FT" << '\t' << combo[i][1] << '\t' << "PROD_ACC" << '\t' << (*feature_tables_info)[i].prod_acc[HOG_master[combo[i][1]][j][1][k]] << '\t' << "??" << '\t' <<  HOG_master[combo[i][1]][j][1][k] << '\n';
+                            }
+                        }else{
+                            if((*feature_tables_info)[i].prod_acc[HOG_master[combo[i][1]][j][1][k]] == (*feature_tables_info)[i].prod_acc[HOG_master[combo[i][1]][j][1][k - 1]]){
+                                continue;
+                            }else{
+                                ++sum;
+                                if(diag > 2){
+                                    std::cout << "HOGBOT" << '\t' << i << '\t' << j << '\t' << "FT" << '\t' << combo[i][1] << '\t' << "PROD_ACC" << '\t' << (*feature_tables_info)[i].prod_acc[HOG_master[combo[i][1]][j][1][k]] << '\n';
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+
         if(diag > 3){
             std::cout << "SUM" << '\t' << j << '\t' << sum << '\n';
         }
@@ -2438,25 +2638,57 @@ std::vector<std::vector<std::string>> match_hog(std::vector<int>*** HOG_master, 
             }
             */
             
+            // Following loop checks if the new orthologous groups are the same as the orthologous groups from OrthoFinder by counting the number of genes in each group
+            // This may not work if the annotation has duplicate genes (gff). This may add a gene to the SOG and if a different gene was removed from the SOG, the count will not change.
+            // xx is SOG, yy is genome, zz is gene per genome
             bool new_results{0};
             for(int xx = 0; xx < final_answer.size(); ++xx){ // If not printing all orthofinder, check if there was a change from orthofinder's output. If so, print
                 int result_count{0};
                 for(int yy = 0; yy < final_answer[xx].capacity(); ++yy){
-                    for(int zz = 0; zz < final_answer[xx][yy].capacity(); ++zz){
-                        if(final_answer[xx][yy][zz] != ""){
-                            ++result_count;
+                    for(int zz = 0; zz < final_answer[xx][yy].size(); ++zz){ // was .capacity()
+                        if(final_answer[xx][yy][zz] != ""){ // this probably can be removed as we check size instead of capacity, but I haven't checked 100%
+                            if(zz == 0){ // first gene in SOG from a genome
+                                ++result_count;
+                            }else{ // check if the other genes from the same genome are the same genes by prod acc to detect refinements in HOGs
+                                std::string temp = final_answer[xx][yy][zz - 1]; // store previous gene
+                                // check temp for comma and remove comma
+                                if(temp[temp.size() - 2] == ','){ // -2 because -1 is whitespace
+                                    std::string temp = "";
+                                    std::string temp2 = "";
+                                    if(yy == 0){
+                                        temp = (*feature_tables_info)[combo[0][0]].prod_acc[HOG_master[0][j][0][zz - 1]];
+                                        temp2 = (*feature_tables_info)[combo[0][0]].prod_acc[HOG_master[0][j][0][zz]];
+                                    }else if(yy == 1){
+                                        temp = (*feature_tables_info)[combo[0][1]].prod_acc[HOG_master[0][j][1][zz - 1]];
+                                        temp2 = (*feature_tables_info)[combo[0][1]].prod_acc[HOG_master[0][j][1][zz]];
+                                    }else{
+                                        temp = (*feature_tables_info)[yy].prod_acc[HOG_master[combo[yy][1]][j][1][zz - 1]];
+                                        temp2 = (*feature_tables_info)[yy].prod_acc[HOG_master[combo[yy][1]][j][1][zz]];
+                                    }
+                                    if(temp == temp2){ // if previous gene and current gene are the same by prod acc
+                                        continue;
+                                    }else{ // if previous gene and current gene are not the same by prod acc
+                                        ++result_count;
+                                    }
+                                }else{ // no comma, cannot be same gene
+                                    ++result_count;
+                                }
+                            }
                         }
                     }
                 }
-                if(result_count == sum && print_all_orthofinder == 0){
+                if(diag > 2){
+                    std::cout << "Result count" << '\t' << result_count << '\t' << "Sum" << '\t' << sum << '\n';
+                }
+                if(result_count == sum && print_all_orthofinder == 0){  
                     new_results = 1;
-                }else if(result_count != sum && result_count > 0 && print_all_orthofinder == 0){
+                }else if(result_count < sum && result_count > 0 && print_all_orthofinder == 0){ // changing from result_count != sum to < as gff can have duplicate proteins
                     new_results = 0;
                     goto new_loop;
                 }
             }
             new_loop:;
-
+            
             if(new_results == 0){
                 for(int xx = 0; xx < final_answer.size(); ++xx){
                     std::string temp_hog_match = "";
@@ -2646,6 +2878,11 @@ void while_loop(std::vector<int>*** HOG_master, int j, int p, int **zstore, int 
         n = m - (((window_size / 2) - adjust_pre) + samp_back);
     }
     // check if the end of window needs to wrap around genome or be set to max
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+    // if(m >= (*feature_tables_info)[ftk].HOG.size() - (window_size / 2) - samp_forw + adjust_post)
+    // Can make this change (+ adjust_post) to remove negative ratio on diag print. Untested tho and not testing it today. 
+    //////////////////////////////////////////////////////////////////////////////////////////////////
     if(m >= (*feature_tables_info)[ftk].HOG.size() - (window_size / 2) - samp_forw){ // might have to include adjust_post like we did adjust_pre on the m < check in the above if
         if(diag > 2){
             std::cout << "OVERFLOW MATH" << '\t' << (*feature_tables_info)[ftk].HOG.size() << '\t' << m << '\t' << samp_forw << '\n';
