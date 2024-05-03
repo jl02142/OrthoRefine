@@ -1,8 +1,22 @@
 #!/bin/bash
+
+#
+#    By J. Ludwig, Copyright 2024. https://github.com/jl02142/OrthoRefine
+#
+
 IFS=$'\n | \t' read -d '' -a DOWNLOAD < $1                                      # Read GCF accession from this file. One sample per line. Store in array "DOWNLOAD".
 
 length=$(( ${#DOWNLOAD[@]} - 1 ))                                               # Number of samples from file.
 
+# check if user supplied a second argument of "--gff"
+if [ "$2" == "--gff" ]; then
+  feature_table="genomic.gff"
+else
+  feature_table="feature_table.txt"
+fi
+
+
+# Following code checks if a second or third column is present in the input file, these are not required but can be used to specify if the genome is circular or linear and if it is an archaea, bacteria or eukaryote genome
 cl_flag=0                                                                       # flag to check if second column contains "c" "C" "l" "L" for circular or linear genome
 for j in `seq 0 $length`; do
   if [ "${DOWNLOAD[j]}" == c ] || [ "${DOWNLOAD[j]}" == C ] || [ "${DOWNLOAD[j]}" == l ] || [ "${DOWNLOAD[j]}" == L ]; then
@@ -53,12 +67,12 @@ if [ $cl_flag == 1 ]; then
 fi
 
 
-
+# Following code is the actual download of the files from NCBI.
 motd_flag=0                                                                     # Flag so MOTD from NCBI only printed once.
 j=0
 while [ $j -le $length ]; do                                                    # Loop through elements of "DOWNLOAD".
-  check=${DOWNLOAD[j]}                                                          # # Check if both protein and feature_table file are already downloaded and then if so, skip downloading them again
-  if [ -f $check\_*_feature_table.txt ] && [ -f $check\_*_protein.faa ]; then
+  check=${DOWNLOAD[j]}                                                          # Check if both protein and feature_table file are already downloaded and then if so, skip downloading them again
+  if [ -f $check\_*_$feature_table ] && [ -f $check\_*_protein.faa ]; then
     ((j+=1))                                                                      # increment every time loop runs
     if [ $cl_flag == 1 ]; then                                                    # increment again if there are 2 columns present as we need to skip the second column data
       ((j+=1))
@@ -85,9 +99,9 @@ while [ $j -le $length ]; do                                                    
   add=rsync://ftp.ncbi.nlm.nih.gov/genomes/all/$GCX/$add*/                      # See end.
   if [ "$motd_flag" == "0" ]; then                                              # Only print NCBI MOTD once.
     motd_flag=1
-    rsync -r --include "*_feature_table.txt.gz" --include "*_protein.faa.gz" --exclude="*" $add ./
+    rsync -r --include "*_$feature_table.gz" --include "*_protein.faa.gz" --exclude="*" $add ./
   else
-    rsync -r --no-motd --include "*_feature_table.txt.gz" --include "*_protein.faa.gz" --exclude="*" $add ./
+    rsync -r --no-motd --include "*_$feature_table.gz" --include "*_protein.faa.gz" --exclude="*" $add ./
   fi
 
   #old rsync code using exclude isntead of include
@@ -105,14 +119,14 @@ while [ $j -le $length ]; do                                                    
 
   check=${DOWNLOAD[j]}                                                          # Check if both protein and feature_table file were downloaded.
   #echo $check
-  if [ ! -f $check*_feature_table.txt.gz ]; then
-    echo "Error:" $check*_feature_table.txt.gz "not downloaded"
+  if [ ! -f $check*_$feature_table.gz ]; then
+    echo "Error:" $check*_$feature_table.gz "not downloaded"
   fi
   if [ ! -f $check*_protein.faa.gz ]; then
     echo "Error:" $check*_protein.faa.gz "not downloaded"
   fi
 
-  gunzip $check*_feature_table.txt.gz                                         # unzip the downloaded files
+  gunzip $check*_$feature_table.gz                                         # unzip the downloaded files
   gunzip $check*_protein.faa.gz
 
 
