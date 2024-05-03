@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+#
+#    By J. Ludwig, Copyright 2024. https://github.com/jl02142/OrthoRefine
+#
+
 finder_cmd=""
 refine_cmd=""
 OF_file="N0.tsv"
@@ -11,6 +15,7 @@ alignment_stop=false
 tree_stop=false
 orthogroups_start=false
 tree_start=false
+gff=false
 
 while true; do
     thing=$1
@@ -183,6 +188,9 @@ while true; do
     elif [ $thing == --run_combo ];then
         refine_cmd=$refine_cmd" --run_combo"
         shift
+    elif [ $thing == --gff ];then
+        gff=true
+        shift
     else
     echo $@
         echo "Error: bad argument provided " $thing
@@ -190,7 +198,11 @@ while true; do
     fi
 done
 
-./download_ft_fafiles.sh $input
+if [ $gff == true ]; then
+    ./download_ft_fafiles.sh $input --gff
+else
+    ./download_ft_fafiles.sh $input
+fi
 
 $finder_cmd
 #echo $finder_cmd
@@ -204,5 +216,5 @@ fi
 dos2unix $OF_file
 
 $refine_cmd
-echo $refine_cmd
+#echo $refine_cmd
 
