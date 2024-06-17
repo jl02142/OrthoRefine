@@ -69,6 +69,8 @@ void find_substr(bool &found_t, size_t &pos, std::vector<std::vector<std::string
 
 int main(int argc, char* argv[]){
 
+    std::cout << "In-development version, V2. Implementing gff files as input." << '\n';
+
     std::string path = "";                  // path of files to be read; N0.tsv and feature table. 
     std::string refseq_file = "input.txt";  // user provided / created file that contains the REFSEQ accession per each sample. One accession per line in file
     std::string OrthFnd_file = "N0.tsv";    // Orthofinder file
@@ -860,6 +862,16 @@ namespace File_read{
 
                 if(file_match == 0){
                     std::cout << "Error feature table file missing" << '\n';
+                    std::cout << "The file names need a certain format for OrthoRefine to pattern match against" << '\n';
+                    std::cout << "For example, if you are using GFF files for human and mouse, the input file would be:" << '\n';
+                    std::cout << "GCF_Homo.sapiens" << '\n';
+                    std::cout << "GCF_Mus.musculus" << '\n';
+                    std::cout << "And the files in the directory would be named:" << '\n';
+                    std::cout << "GCF_Homo.sapiens_GRCh38.pep.all.fa" << '\n';
+                    std::cout << "GCF_Homo.sapiens_GRCh38.112.genomic.gff" << '\n';
+                    std::cout << "GCF_Mus.musculus_GRCm39.pep.all.fa" << '\n';
+                    std::cout << "GCF_Mus.musculus_GRCm39.112.genomic.gff" << '\n';
+                    std::cout << "For GFF files, the pattern needs to be GCF_*_*.genomic.gff where all the text before the second underscore needs to be the text in the input file." << '\n';
                     std::exit(EXIT_FAILURE);
                 }
                 temp_string = "";
@@ -1107,7 +1119,25 @@ namespace File_read{
                                     if(temp_string.find("Name=") != std::string::npos){
                                         int pos = temp_string.find("Name=");
                                         int pos2 = temp_string.find(";", pos);
-                                        (*feature_tables_info)[i].prod_acc[ft_line_count] = temp_string.substr(pos + 5, pos2 - pos - 5);
+                                        if(temp_string.find("Name=cds:") != std::string::npos || temp_string.find("Name=CDS:") != std::string::npos){
+                                            (*feature_tables_info)[i].prod_acc[ft_line_count] = temp_string.substr(pos + 9, pos2 - pos - 9);
+                                        }else{
+                                            (*feature_tables_info)[i].prod_acc[ft_line_count] = temp_string.substr(pos + 5, pos2 - pos - 5);
+                                        }
+                                    }else if(temp_string.find("protein_id=") != std::string::npos){
+                                        int pos = temp_string.find("protein_id=");
+                                        int pos2;
+                                        pos2 = temp_string.find(";", pos);
+                                        if(pos2 != std::string::npos){
+
+                                        }else if(pos2 == std::string::npos){
+                                            pos2 = temp_string.length(); // if no ; found, use end of string
+                                        }
+                                        if(temp_string.find("protein_id=cds:") != std::string::npos || temp_string.find("protein_id=CDS:") != std::string::npos){
+                                            (*feature_tables_info)[i].prod_acc[ft_line_count] = temp_string.substr(pos + 15, pos2 - pos - 15);
+                                        }else{
+                                            (*feature_tables_info)[i].prod_acc[ft_line_count] = temp_string.substr(pos + 11, pos2 - pos - 11);
+                                        }
                                     }
                                     // search temp string for Genebank: and if found, store the text following the : until the semi colon as the product accession
                                     //if(temp_string.find("Genebank:") != std::string::npos){
@@ -1119,19 +1149,34 @@ namespace File_read{
                                     if(temp_string.find("product=") != std::string::npos){
                                         int pos = temp_string.find("product=");
                                         int pos2 = temp_string.find(";", pos);
-                                        (*feature_tables_info)[i].gene_name[ft_line_count] = temp_string.substr(pos + 8, pos2 - pos - 8);
+                                        if(temp_string.find("product=cds:") != std::string::npos || temp_string.find("product=CDS:") != std::string::npos){
+                                            (*feature_tables_info)[i].gene_name[ft_line_count] = temp_string.substr(pos + 12, pos2 - pos - 12);
+                                        }else{
+                                            (*feature_tables_info)[i].gene_name[ft_line_count] = temp_string.substr(pos + 8, pos2 - pos - 8);
+                                        }
                                     }
                                     // search temp string for gene= and if found, store the text following the = until the semi colon as the symbol
                                     if(temp_string.find("gene=") != std::string::npos){
                                         int pos = temp_string.find("gene=");
                                         int pos2 = temp_string.find(";", pos);
-                                        (*feature_tables_info)[i].symbol[ft_line_count] = temp_string.substr(pos + 5, pos2 - pos - 5);
+                                        if(temp_string.find("gene=cds:") != std::string::npos || temp_string.find("gene=CDS:") != std::string::npos){
+                                            (*feature_tables_info)[i].symbol[ft_line_count] = temp_string.substr(pos + 9, pos2 - pos - 9);
+                                        }else{
+                                            (*feature_tables_info)[i].symbol[ft_line_count] = temp_string.substr(pos + 5, pos2 - pos - 5);
+                                        }
                                     }
                                     // search temp string for locus_tag= and if found, store the text following the = until the semi colon as the locus tag
                                     if(temp_string.find("locus_tag=") != std::string::npos){
                                         int pos = temp_string.find("locus_tag=");
                                         int pos2 = temp_string.find(";", pos);
-                                        (*feature_tables_info)[i].locus_tag[ft_line_count] = temp_string.substr(pos + 10, pos2 - pos - 10);
+                                        if(temp_string.find("locus_tag=cds:") != std::string::npos || temp_string.find("locus_tag=CDS:") != std::string::npos){
+                                            (*feature_tables_info)[i].locus_tag[ft_line_count] = temp_string.substr(pos + 14, pos2 - pos - 14);
+                                        }else{
+                                            (*feature_tables_info)[i].locus_tag[ft_line_count] = temp_string.substr(pos + 10, pos2 - pos - 10);
+                                        }
+                                    }else{
+                                        // use the prod_acc as locus_tag
+                                        (*feature_tables_info)[i].locus_tag[ft_line_count] = (*feature_tables_info)[i].prod_acc[ft_line_count];
                                     }
                                     ++ft_line_count;
                                     c_flag = 0;
